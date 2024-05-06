@@ -3,7 +3,7 @@ import styles from "./page.module.css";
 export default function Home() {
   return (
     <main className={styles.main}>
-      <h1>HELLO WORLD</h1>
+      <h1>HELLO WORLD CHAGES</h1>
     </main>
   );
 }
