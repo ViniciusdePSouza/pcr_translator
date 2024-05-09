@@ -1,9 +1,10 @@
-import styles from "./page.module.css";
+"use client";
+import { Container } from "./styles";
 
 export default function Home() {
   return (
-    <main className={styles.main}>
-      <h1>HELLO WORLD CHAGES</h1>
-    </main>
+    <Container>
+     <h1>Styles</h1>
+    </Container>
   );
 }
