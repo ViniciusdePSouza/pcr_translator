@@ -14,7 +14,6 @@ export async function login({
     `?Username=${username}&Password=${password}&DatabaseId=${databaseId}&ApiKey=${apiKey}&AppId=${appId}`;
   try {
     const response = await pcrApi.post(url);
-    console.log(response);
 
     return response.data as LoginApiResponseType;
   } catch (error: any) {

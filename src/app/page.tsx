@@ -13,6 +13,7 @@ import { useForm } from "react-hook-form";
 import { login } from "@/services/loginService";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useUser } from "./hooks/userContext";
 
 const loginFormSchema = yup.object({
   username: yup.string().required(),
@@ -31,14 +32,18 @@ export default function Home() {
     resolver: yupResolver(loginFormSchema),
   });
 
-  const router = useRouter()
+  const router = useRouter();
+
+  const { saveUser } = useUser();
 
   async function handleLogin(data: LoginFormData) {
     try {
       const response = await login(data);
 
+      saveUser(response);
+
       if (response?.SessionId) {
-        router.push('/home')
+        router.push("/home");
       }
     } catch (error) {
       alert(error);
@@ -47,7 +52,7 @@ export default function Home() {
 
   useEffect(() => {
     if (isSubmitting && !isValid && isDirty) {
-      alert('Please fill out the form correctly');
+      alert("Please fill out the form correctly");
     }
   }, [errors, isSubmitting, isValid, isDirty]);
 
