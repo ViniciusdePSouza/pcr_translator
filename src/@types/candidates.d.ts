@@ -29,4 +29,5 @@ export type CandidateFields =
     LastName: string;
     EmailAddress: string;
     UserName: string;
+    Title: string
   }

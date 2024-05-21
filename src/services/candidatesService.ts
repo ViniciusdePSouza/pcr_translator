@@ -14,7 +14,7 @@ export async function getCandidates(
   const userNameParam = `UserName+eq+${userName}`;
   let fieldParamsUrl = "&Fields=";
   const resultsPerPageParam = `&ResultsPerPage=${resultsPerPage}`;
-  const pageParam = `Page=${page}`;
+  const pageParam = `&Page=${page}`;
   let fields = "";
 
   fieldParams.forEach((fieldParams) => {
