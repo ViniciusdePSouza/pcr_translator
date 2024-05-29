@@ -1,5 +1,5 @@
 import { CandidateFields } from "@/@types";
-import { pcrApi } from "./api";
+import { pcrApi } from "../api";
 import { validateFields } from "@/utils/validators";
 
 export async function getCandidates(

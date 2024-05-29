@@ -2,13 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useUser } from "../hooks/userContext";
-import { getCandidates } from "@/services/candidatesService";
+
 import { CandidateFields, CandidateProps } from "@/@types";
 import { Header } from "@/components/Header";
 import { CandidatesWrapper, Container, Footer, Wrapper } from "./styles";
 import { CandidateCard } from "@/components/CandidateCard";
 import { ArrowLeft, ArrowRight } from "phosphor-react";
 import { defaultTheme } from "../styles/theme/default";
+import { getCandidates } from "@/services/PCR/candidatesService";
+import { UtilsBar } from "@/components/UtilsBar";
 
 export default function Home() {
   const { user } = useUser();
@@ -16,7 +18,7 @@ export default function Home() {
   const [page, setPage] = useState(1);
   const [qtPerPage, setQtPerPage] = useState(12);
   const [totalResults, setTotalResults] = useState(0);
-  const [candidates, setCandidates] = useState<CandidateProps[]>([]);
+  const [candidates, setCandidates] = useState<CandidateProps[]>([])
 
   async function fetchCandidates(
     sessionId: string,
@@ -64,6 +66,7 @@ export default function Home() {
     <Wrapper>
       <Container>
         <Header title={"See your candidates"} />
+        <UtilsBar/>
         <CandidatesWrapper>
           
         {candidates &&

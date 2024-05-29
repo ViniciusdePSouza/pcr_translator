@@ -1,5 +1,5 @@
 import { LoginApiResponseType, LoginFormData } from "@/@types";
-import { pcrApi } from "./api";
+import { pcrApi } from "../api";
 
 export async function login({
   apiKey,
