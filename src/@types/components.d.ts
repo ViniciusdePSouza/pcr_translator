@@ -14,3 +14,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 export interface CandidateCardProps {
   candidate: CandidateProps;
 }
+
+export interface UtilsBarProps {
+  candidates: CandidateProps[];
+}

@@ -66,7 +66,7 @@ export default function Home() {
     <Wrapper>
       <Container>
         <Header title={"See your candidates"} />
-        <UtilsBar/>
+        <UtilsBar candidates={candidates}/>
         <CandidatesWrapper>
           
         {candidates &&
