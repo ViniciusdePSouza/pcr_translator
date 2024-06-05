@@ -36,7 +36,15 @@ export default function Home() {
         resultsPerPage
       );
 
-      setCandidates(response.Results);
+      const candidates = response.Results.map((candidate: CandidateProps) => {
+        return {
+          ...candidate, 
+          status: "", 
+          sub_status: ""
+        };
+      })
+
+      setCandidates(candidates);
       setTotalResults(response.TotalResults);
     } catch (error) {
       console.log(error);

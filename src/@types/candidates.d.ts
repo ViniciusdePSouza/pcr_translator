@@ -30,4 +30,6 @@ export type CandidateFields =
     EmailAddress: string;
     UserName: string;
     Title: string
+    status?: string
+    sub_status?: string
   }

@@ -1,22 +1,40 @@
 import { validateEmail } from "@/services/ZeroBounce/emailService";
 import { Button } from "../Button";
-import { ButtonWrapper, Container, Modal } from "./styles";
+import { ButtonWrapper, Container } from "./styles";
 import { CandidateProps, UtilsBarProps } from "@/@types";
 import { useState } from "react";
 
 export function UtilsBar({ candidates }: UtilsBarProps) {
-  function getCandidatesEmails(candidates: CandidateProps[]) {
-    const emailsBatch = candidates.map((candidate) => candidate.EmailAddress);
+  const [x, setX] = useState<any>([]);
 
+  function getCandidatesEmails(candidates: CandidateProps[]) {
+    const emailsBatch = candidates.map((candidate) => {
+      if (candidate.EmailAddress == null) return "";
+
+      return candidate.EmailAddress;
+    });
     return emailsBatch;
   }
 
-  function handleClick() {
+  async function handleClick() {
     const emailsBatch = getCandidatesEmails(candidates);
 
     const apikEY = prompt("please enter your apikey address");
 
-    validateEmail(apikEY!, emailsBatch);
+    const checkedEmails = await validateEmail(apikEY!, emailsBatch);
+
+    const checkedCandidates = candidates.map((candidate) => {
+      const updatedCandidate = candidate;
+      checkedEmails?.forEach((item) => {
+        if (item.emailAddress === candidate.EmailAddress) {
+          updatedCandidate.status = item.status;
+          updatedCandidate.sub_status = item.sub_status;
+        }
+      });
+      return updatedCandidate;
+    })
+    
+    return checkedCandidates
   }
 
   return (

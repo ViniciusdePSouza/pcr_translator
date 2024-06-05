@@ -1,3 +1,4 @@
+import { jsonToEmailBatchObj } from "@/utils/jsonTranslators";
 import { zeroBounceApi } from "../api";
 
 export async function validateEmail(apiKey: String, emailsBatch: string[]) {
@@ -8,14 +9,15 @@ export async function validateEmail(apiKey: String, emailsBatch: string[]) {
     };
   });
   const body = {
-    apiKey: apiKey,
+    api_key: apiKey,
     email_batch: emailsBatchObj,
   };
 
   try {
     const response = await zeroBounceApi.post(resource, body);
 
-    console.log(response);
+    const checkedEmails = jsonToEmailBatchObj(response.data.email_batch);
+    return checkedEmails;
   } catch (error: any) {
     console.log(error);
   }
