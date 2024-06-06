@@ -25,6 +25,7 @@ export type CandidateFields =
   | 'UserName';
 
   export interface CandidateProps {
+    CandidateId: number;
     FirstName: string;
     LastName: string;
     EmailAddress: string;

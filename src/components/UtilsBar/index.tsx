@@ -1,12 +1,14 @@
 import { validateEmail } from "@/services/ZeroBounce/emailService";
 import { Button } from "../Button";
 import { ButtonWrapper, Container } from "./styles";
-import { CandidateProps, UtilsBarProps } from "@/@types";
-import { useState } from "react";
+import {
+  CandidateProps,
+  CheckedEmailProps,
+  CheckedEmailStatus,
+  UtilsBarProps,
+} from "@/@types";
 
 export function UtilsBar({ candidates }: UtilsBarProps) {
-  const [x, setX] = useState<any>([]);
-
   function getCandidatesEmails(candidates: CandidateProps[]) {
     const emailsBatch = candidates.map((candidate) => {
       if (candidate.EmailAddress == null) return "";
@@ -18,23 +20,42 @@ export function UtilsBar({ candidates }: UtilsBarProps) {
 
   async function handleClick() {
     const emailsBatch = getCandidatesEmails(candidates);
+    const loops = Math.ceil(emailsBatch.length / 200);
 
     const apikEY = prompt("please enter your apikey address");
 
-    const checkedEmails = await validateEmail(apikEY!, emailsBatch);
+    let checkedEmails: CheckedEmailProps[] = [] as CheckedEmailProps[];
+    try {
+      for (let i = 0; i < loops; i++) {
+        console.log(`LOOP ===> ${i}`);
+        const emailsBatchSubset = emailsBatch.slice((i * 200), (i * 200) + 199);
 
-    const checkedCandidates = candidates.map((candidate) => {
-      const updatedCandidate = candidate;
-      checkedEmails?.forEach((item) => {
-        if (item.emailAddress === candidate.EmailAddress) {
-          updatedCandidate.status = item.status;
-          updatedCandidate.sub_status = item.sub_status;
+        let responseZeroBounce = await validateEmail(
+          apikEY!,
+          emailsBatchSubset
+        );
+       
+        if(responseZeroBounce === undefined) {
+          responseZeroBounce = [] as CheckedEmailProps[]
         }
+        
+        checkedEmails = [...checkedEmails, ...responseZeroBounce];
+      }
+      const checkedCandidates = candidates.map((candidate) => {
+        const updatedCandidate = candidate;
+        checkedEmails.forEach((item: CheckedEmailProps) => {
+          if (item.emailAddress === candidate.EmailAddress) {
+            updatedCandidate.status = item.status;
+            updatedCandidate.sub_status = item.sub_status;
+          }
+        });
+        return updatedCandidate;
       });
-      return updatedCandidate;
-    })
-    
-    return checkedCandidates
+console.log(checkedCandidates)
+      return checkedCandidates;
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   return (
