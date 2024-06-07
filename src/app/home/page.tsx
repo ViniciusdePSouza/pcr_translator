@@ -8,6 +8,9 @@ import { getCandidates } from "@/services/PCR/candidatesService";
 import { UtilsBar } from "@/components/UtilsBar";
 import { Button } from "@/components/Button";
 import { createRollUpList } from "@/services/PCR/rollupService";
+import { Header } from "@/components/Header";
+import { Container } from "./styles";
+import { Loading } from "@/components/Loading";
 
 export default function Home() {
   const { user } = useUser();
@@ -16,6 +19,7 @@ export default function Home() {
   const [qtPerPage, setQtPerPage] = useState(500);
   const [totalResults, setTotalResults] = useState(0);
   const [candidates, setCandidates] = useState<CandidateProps[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   async function populteAllCandidates(
     sessionId: string,
@@ -63,6 +67,7 @@ export default function Home() {
     page: number,
     resultsPerPage: number
   ) {
+    setIsLoading(true);
     try {
       const response = await getCandidates(
         sessionId,
@@ -84,17 +89,22 @@ export default function Home() {
 
       setCandidates(responseCandidates);
       setTotalResults(response.TotalRecords);
+      setIsLoading(false);
     } catch (error) {
       console.log(error);
+      setIsLoading(false);
     }
   }
 
   async function handleRollUpList() {
-    createRollUpList({
-      userName: "vini",
-      description: "oi",
-      memo: "apenas um teste",
-    }, user.SessionId);
+    createRollUpList(
+      {
+        userName: "vini",
+        description: "oi",
+        memo: "apenas um teste",
+      },
+      user.SessionId
+    );
   }
 
   useEffect(() => {
@@ -105,47 +115,59 @@ export default function Home() {
       page,
       qtPerPage
     );
+    
   }, []);
+
+  if (!isLoading) {
+    return (
+      <Container>
+        <Loading/>
+      </Container>
+    );
+  }
 
   return (
     <>
-      <UtilsBar candidates={candidates} />;
-      <Button
-        title={"Get Started"}
-        isLoading={false}
-        onClick={() => {
-          fetchCandidates(
-            user.SessionId,
-            user.Login,
-            [
-              "EmailAddress",
-              "CandidateId",
-              "FirstName",
-              "LastName",
-              "UserName",
-            ],
-            page,
-            qtPerPage
-          );
-          populteAllCandidates(
-            user.SessionId,
-            user.Login,
-            [
-              "EmailAddress",
-              "CandidateId",
-              "FirstName",
-              "LastName",
-              "UserName",
-            ],
-            qtPerPage
-          );
-        }}
-      />
-      <Button
-        title={"Create Rollup List"}
-        isLoading={false}
-        onClick={handleRollUpList}
-      />
+      <Header title={`Hello ${user.Login}`} />
+      <Container>
+        <UtilsBar candidates={candidates} />;
+        <Button
+          title={"Get Started"}
+          isLoading={false}
+          onClick={() => {
+            fetchCandidates(
+              user.SessionId,
+              user.Login,
+              [
+                "EmailAddress",
+                "CandidateId",
+                "FirstName",
+                "LastName",
+                "UserName",
+              ],
+              page,
+              qtPerPage
+            );
+            populteAllCandidates(
+              user.SessionId,
+              user.Login,
+              [
+                "EmailAddress",
+                "CandidateId",
+                "FirstName",
+                "LastName",
+                "UserName",
+              ],
+              qtPerPage
+            );
+          }}
+        />
+        <Button
+          title={"Create Rollup List"}
+          isLoading={false}
+          onClick={handleRollUpList}
+        />
+      </Container>
     </>
   );
 }
