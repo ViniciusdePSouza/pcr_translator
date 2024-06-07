@@ -17,7 +17,7 @@ export const Container = styled.button`
 
   border-radius: 8px;
 
-  color: ${({ theme }) => theme.COLORS.GRAY_200};
+  color: ${({ theme }) => theme.COLORS.WHITE_100};
 
   background: ${({ theme }) => theme.COLORS.SECONDARY};
 

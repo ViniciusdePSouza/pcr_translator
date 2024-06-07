@@ -6,6 +6,8 @@ import { useUser } from "../hooks/userContext";
 import { CandidateFields, CandidateProps } from "@/@types";
 import { getCandidates } from "@/services/PCR/candidatesService";
 import { UtilsBar } from "@/components/UtilsBar";
+import { Button } from "@/components/Button";
+import { createRollUpList } from "@/services/PCR/rollupService";
 
 export default function Home() {
   const { user } = useUser();
@@ -87,6 +89,14 @@ export default function Home() {
     }
   }
 
+  async function handleRollUpList() {
+    createRollUpList({
+      userName: "vini",
+      description: "oi",
+      memo: "apenas um teste",
+    }, user.SessionId);
+  }
+
   useEffect(() => {
     fetchCandidates(
       user.SessionId,
@@ -97,18 +107,45 @@ export default function Home() {
     );
   }, []);
 
-  useEffect(() => {
-    populteAllCandidates(
-      user.SessionId,
-      user.Login,
-      ["EmailAddress", "CandidateId", "FirstName", "LastName", "UserName"],
-      qtPerPage
-    );
-  }, [totalResults]);
-
-  useEffect(() => {
-    console.log(candidates);
-  }, [candidates]);
-
-  return <UtilsBar candidates={candidates} />;
+  return (
+    <>
+      <UtilsBar candidates={candidates} />;
+      <Button
+        title={"Get Started"}
+        isLoading={false}
+        onClick={() => {
+          fetchCandidates(
+            user.SessionId,
+            user.Login,
+            [
+              "EmailAddress",
+              "CandidateId",
+              "FirstName",
+              "LastName",
+              "UserName",
+            ],
+            page,
+            qtPerPage
+          );
+          populteAllCandidates(
+            user.SessionId,
+            user.Login,
+            [
+              "EmailAddress",
+              "CandidateId",
+              "FirstName",
+              "LastName",
+              "UserName",
+            ],
+            qtPerPage
+          );
+        }}
+      />
+      <Button
+        title={"Create Rollup List"}
+        isLoading={false}
+        onClick={handleRollUpList}
+      />
+    </>
+  );
 }

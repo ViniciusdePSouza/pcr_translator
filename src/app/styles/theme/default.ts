@@ -9,8 +9,17 @@ export const defaultTheme = {
         GRAY_300:'#3E354B',
         GRAY_400:'#2A2337',
 
-        PRIMARY: '#722e9a',
-        SECONDARY: '#FDB927',
+        PRIMARY: '#004684',
+        SECONDARY: '#4996DA',
+
+        PRIMARY_100: '#80C4FF',
+        PRIMARY_500: '#001D85',
+        PRIMARY_700: '#0F375A',
+
+        SECONDARY_100: '#00DCB4',
+        SECONDARY_500: '#00A183',
+        SECONDARY_700: '#00493C',
+    
 
         PURPLE_100: '#ebd9fc',
         PURPLE_300: '#9667e0',

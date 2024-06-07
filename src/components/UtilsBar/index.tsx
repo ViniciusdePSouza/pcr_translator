@@ -1,12 +1,8 @@
 import { validateEmail } from "@/services/ZeroBounce/emailService";
 import { Button } from "../Button";
 import { ButtonWrapper, Container } from "./styles";
-import {
-  CandidateProps,
-  CheckedEmailProps,
-  CheckedEmailStatus,
-  UtilsBarProps,
-} from "@/@types";
+import { CandidateProps, CheckedEmailProps, UtilsBarProps } from "@/@types";
+import { useEffect } from "react";
 
 export function UtilsBar({ candidates }: UtilsBarProps) {
   function getCandidatesEmails(candidates: CandidateProps[]) {
@@ -27,18 +23,18 @@ export function UtilsBar({ candidates }: UtilsBarProps) {
     let checkedEmails: CheckedEmailProps[] = [] as CheckedEmailProps[];
     try {
       for (let i = 0; i < loops; i++) {
-        console.log(`LOOP ===> ${i}`);
-        const emailsBatchSubset = emailsBatch.slice((i * 200), (i * 200) + 199);
+
+        const emailsBatchSubset = emailsBatch.slice(i * 200, i * 200 + 199);
 
         let responseZeroBounce = await validateEmail(
           apikEY!,
           emailsBatchSubset
         );
-       
-        if(responseZeroBounce === undefined) {
-          responseZeroBounce = [] as CheckedEmailProps[]
+
+        if (responseZeroBounce === undefined) {
+          responseZeroBounce = [] as CheckedEmailProps[];
         }
-        
+
         checkedEmails = [...checkedEmails, ...responseZeroBounce];
       }
       const checkedCandidates = candidates.map((candidate) => {
@@ -51,7 +47,7 @@ export function UtilsBar({ candidates }: UtilsBarProps) {
         });
         return updatedCandidate;
       });
-console.log(checkedCandidates)
+      console.log(checkedCandidates);
       return checkedCandidates;
     } catch (error) {
       console.log(error);

@@ -9,7 +9,7 @@ export const Container = styled.div`
   align-items: center;
   justify-content: center;
 
-  background-color: ${({ theme }) => theme.COLORS.PURPLE_300};
+  background-color: ${({ theme }) => theme.COLORS.PRIMARY_300};
 
   border-radius: 8px;
   -webkit-box-shadow: 10px 10px 22px -8px rgba(71, 41, 123, 1);

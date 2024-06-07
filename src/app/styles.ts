@@ -8,7 +8,7 @@ export const Container = styled.div`
   margin: 0 auto;
   min-height: 100vh;
 
-  background-color: ${({ theme }) => theme.COLORS.PURPLE_100};
+  background-color: ${({ theme }) => theme.COLORS.WHITE_100};
 `;
 
 export const Form = styled.form`
@@ -27,7 +27,7 @@ export const Form = styled.form`
     font-size: 2.4rem;
     font-weight: 700;
     text-align: center;
-    color: ${({ theme }) => theme.COLORS.SECONDARY};
+    color: ${({ theme }) => theme.COLORS.WHITE_100};
     margin-bottom: 1.8rem;
   }
 

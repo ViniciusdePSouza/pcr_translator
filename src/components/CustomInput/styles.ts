@@ -10,7 +10,7 @@ export const Container = styled.div`
   label {
     width: 100%;
     text-align: start;
-    color: ${({ theme }) => theme.COLORS.YELLOW_300};
+    color: ${({ theme }) => theme.COLORS.WHITE_100};
     font-size: 1.6rem;
     font-weight: 700;
     margin-bottom: 0.8rem;
@@ -20,15 +20,15 @@ export const Container = styled.div`
     all: unset;
     width: 100%;
 
-    background-color: ${({ theme }) => theme.COLORS.PURPLE_100};
+    background-color: ${({ theme }) => theme.COLORS.PRIMARY_500};
 
     border-radius: 8px;
     border: none;
 
-    color: ${({ theme }) => theme.COLORS.GRAY_200};
+    color: ${({ theme }) => theme.COLORS.WHITE_100};
     font-size: 1.2rem;
     font-weight: 900;
 
-    padding: 0.5rem 0.5rem;
+    padding: .8rem 
   }
 `;

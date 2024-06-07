@@ -4,7 +4,7 @@ export const Wrapper = styled.div`
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: ${({ theme }) => theme.COLORS.PURPLE_100};
+  background-color: ${({ theme }) => theme.COLORS.PRIMARY_100};
 `;
 export const Container = styled.div`
   flex-grow: 1;
