@@ -15,19 +15,6 @@ export const defaultTheme = {
         PRIMARY_100: '#80C4FF',
         PRIMARY_500: '#001D85',
         PRIMARY_700: '#0F375A',
-
-        SECONDARY_100: '#00DCB4',
-        SECONDARY_500: '#00A183',
-        SECONDARY_700: '#00493C',
-    
-
-        PURPLE_100: '#ebd9fc',
-        PURPLE_300: '#9667e0',
-        PURPLE_500: '#47297b',
-
-        YELLOW_100:'#ffe863',
-        YELLOW_300:'#ffd93d',
-        YELLOW_500:'#fdc500',
         
         RED: '#E13636',
         GREEN: '#8edf34'

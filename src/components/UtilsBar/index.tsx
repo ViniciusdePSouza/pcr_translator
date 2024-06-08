@@ -2,7 +2,6 @@ import { validateEmail } from "@/services/ZeroBounce/emailService";
 import { Button } from "../Button";
 import { ButtonWrapper, Container } from "./styles";
 import { CandidateProps, CheckedEmailProps, UtilsBarProps } from "@/@types";
-import { useEffect } from "react";
 
 export function UtilsBar({ candidates }: UtilsBarProps) {
   function getCandidatesEmails(candidates: CandidateProps[]) {
