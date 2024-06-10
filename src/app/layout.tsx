@@ -4,6 +4,7 @@ import { Providers } from "./providers";
 import { ThemeProvider } from "styled-components";
 import { defaultTheme } from "./styles/theme/default";
 import { UserProvider } from "./hooks/userContext";
+import StyledComponentsRegistry from "./registry";
 
 export default function RootLayout({
   children,
@@ -13,11 +14,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <UserProvider>
-          <ThemeProvider theme={defaultTheme}>
-            <Providers>{children}</Providers>
-          </ThemeProvider>
-        </UserProvider>
+        <StyledComponentsRegistry>
+          <UserProvider>
+            <ThemeProvider theme={defaultTheme}>
+              <Providers>{children}</Providers>
+            </ThemeProvider>
+          </UserProvider>
+        </StyledComponentsRegistry>
       </body>
     </html>
   );
