@@ -115,17 +115,6 @@ export default function Home() {
     }
   }
 
-  async function handleRollUpList() {
-    createRollUpList(
-      {
-        userName: "vini",
-        description: "oi",
-        memo: "apenas um teste",
-      },
-      user.SessionId
-    );
-  }
-
   useEffect(() => {
     fetchCandidates(
       user.SessionId,
