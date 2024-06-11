@@ -10,7 +10,7 @@ export const Content = styled.div`
   align-items: center;
   justify-content: center;
 
-  background-color: ${({theme}) => theme.COLORS.GRAY_50};
+  background-color: ${({ theme }) => theme.COLORS.GRAY_50};
 `;
 
 export const Container = styled.div`
@@ -23,5 +23,13 @@ export const Container = styled.div`
   min-height: 100vh;
   min-width: 100vw;
 
-  background-color: ${({theme}) => theme.COLORS.WHITE_100};
-`
+  background-color: ${({ theme }) => theme.COLORS.WHITE_100};
+`;
+
+export const Menu = styled.div`
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  padding: 0.4rem;
+`;

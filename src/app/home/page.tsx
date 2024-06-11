@@ -1,21 +1,28 @@
 "use client";
+import { CandidateFields, CandidateProps } from "@/@types";
 
 import { useEffect, useState } from "react";
-import { useUser } from "../hooks/userContext";
 
-import { CandidateFields, CandidateProps } from "@/@types";
+import { useUser } from "../hooks/userContext";
+import { useCandidates } from "../hooks/candidatesContext";
+
+import { useRouter } from "next/navigation";
+
+import { Container, Content, Menu } from "./styles";
+
 import { getCandidates } from "@/services/PCR/candidatesService";
-import { Button } from "@/components/Button";
 import { createRollUpList } from "@/services/PCR/rollupService";
-import { Header } from "@/components/Header";
-import { Container, Content } from "./styles";
+
+import { Button } from "@/components/Button";
 import { Loading } from "@/components/Loading";
 import { Modal } from "@/components/Modal";
-import { useCandidates } from "../hooks/candidatesContext";
+import { Header } from "@/components/Header";
 
 export default function Home() {
   const { user } = useUser();
   const { saveCandidates } = useCandidates();
+
+  const router = useRouter();
 
   const [page, setPage] = useState(1);
   const [qtPerPage, setQtPerPage] = useState(5);
@@ -164,13 +171,9 @@ export default function Home() {
         return (
           <>
             <h1>Menu</h1>
-            <Button
-              title={"Get Started"}
-              isLoading={false}
-              onClick={() => {
-                setSteps(1);
-              }}
-            />
+            <Menu>
+              <Button title={"Check Emails"} isLoading={false} onClick={() => router.push("/checkEmails")}/>
+            </Menu>
           </>
         );
 
