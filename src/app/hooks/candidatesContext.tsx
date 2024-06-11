@@ -18,7 +18,10 @@ function CandidatesProvider({ children }: CandidatesProviderProps) {
     setAllCandidates(candidates);
   }
 
-  useEffect(() => {console.log(allCandidates)}, [allCandidates])
+  useEffect(() => {
+    console.log("ALL CANDIDATES LOG")
+    console.log(allCandidates)
+  }, [allCandidates])
 
   return (
     <CandidatesContext.Provider value={{ allCandidates, saveCandidates }}>

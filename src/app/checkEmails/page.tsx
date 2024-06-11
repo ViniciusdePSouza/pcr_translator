@@ -59,14 +59,15 @@ export default function CheckEmails() {
   async function handleClick() {
     setIsLoading(true);
     const emailsBatch = getCandidatesEmails(allCandidates);
-    const loops = Math.ceil(emailsBatch.length / 200);
+    const loops = Math.ceil(emailsBatch.length / 5);
 
     const apikEY = prompt("please enter your apikey address");
 
     let checkedEmails: CheckedEmailProps[] = [] as CheckedEmailProps[];
     try {
       for (let i = 0; i < loops; i++) {
-        const emailsBatchSubset = emailsBatch.slice(i * 200, i * 200 + 199);
+        console.log(`pegando array no intervalor ${i * 5} ate ${i * 5 + 4}`)
+        const emailsBatchSubset = emailsBatch.slice(i * 5, i * 5 + 4);
 
         let responseZeroBounce = await validateEmail(
           apikEY!,

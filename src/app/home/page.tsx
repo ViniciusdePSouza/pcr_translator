@@ -11,7 +11,6 @@ import { useRouter } from "next/navigation";
 import { Container, Content, Menu } from "./styles";
 
 import { getCandidates } from "@/services/PCR/candidatesService";
-import { createRollUpList } from "@/services/PCR/rollupService";
 
 import { Button } from "@/components/Button";
 import { Loading } from "@/components/Loading";
@@ -40,9 +39,10 @@ export default function Home() {
     setIsLoading(true);
     const loops = Math.ceil(totalResults / qtPerPage);
     let newCandidatesArray: CandidateProps[] = [];
-    console.log(`loop => ${loops}`);
+    console.log(`loop qtd => ${loops}`);
     try {
       for (let i = 2; i < loops + 1; i++) {
+        console.log(` estamos no loop ${i}`);
         const response = await getCandidates(
           sessionId,
           userName,
@@ -63,7 +63,7 @@ export default function Home() {
 
         newCandidatesArray = [...newCandidatesArray, ...responseCandidates];
 
-        console.log(newCandidatesArray.length);
+        console.log(`tamanho do novo array ==> ${newCandidatesArray.length}`);
       }
 
       setCandidates((prevCandidates) => [
@@ -87,6 +87,7 @@ export default function Home() {
     resultsPerPage: number
   ) {
     setIsLoading(true);
+    console.log('primeiro fetchCandidates')
     try {
       const response = await getCandidates(
         sessionId,
