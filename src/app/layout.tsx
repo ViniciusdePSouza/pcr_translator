@@ -5,6 +5,7 @@ import { ThemeProvider } from "styled-components";
 import { defaultTheme } from "./styles/theme/default";
 import { UserProvider } from "./hooks/userContext";
 import StyledComponentsRegistry from "./registry";
+import { CandidatesProvider } from "./hooks/candidatesContext";
 
 export default function RootLayout({
   children,
@@ -15,11 +16,13 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <StyledComponentsRegistry>
-          <UserProvider>
-            <ThemeProvider theme={defaultTheme}>
-              <Providers>{children}</Providers>
-            </ThemeProvider>
-          </UserProvider>
+          <CandidatesProvider>
+            <UserProvider>
+              <ThemeProvider theme={defaultTheme}>
+                <Providers>{children}</Providers>
+              </ThemeProvider>
+            </UserProvider>
+          </CandidatesProvider>
         </StyledComponentsRegistry>
       </body>
     </html>
