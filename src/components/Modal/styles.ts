@@ -7,4 +7,8 @@ export const Container = styled.div`
   width: 80%;
   justify-content: center;
   background-color: ${({ theme }) => theme.COLORS.WHITE_100};
+
+  @media (min-width: 768px) {
+    width: 50%;
+  }
 `;

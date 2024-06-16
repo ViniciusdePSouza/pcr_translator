@@ -72,8 +72,7 @@ export async function insertRecordOnRollUpList(
   const candidateIdParam = `/${candidateId}`;
 
   const url = resource + listCodeParam + candidateIdParam;
-  console.log("URL")
-  console.log(url)
+
   const body = {};
 
   try {
