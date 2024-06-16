@@ -23,8 +23,8 @@ import * as yup from "yup";
 import { useForm } from "react-hook-form";
 
 const createRollupListFormSchema = yup.object({
-  description: yup.string().required('this field is required'),
-  memo: yup.string().required('this field is required'),
+  description: yup.string().required("this field is required"),
+  memo: yup.string().required("this field is required"),
 });
 
 interface CreateRollupListFormData {
@@ -66,7 +66,7 @@ export default function CheckEmails() {
     let checkedEmails: CheckedEmailProps[] = [] as CheckedEmailProps[];
     try {
       for (let i = 0; i < loops; i++) {
-        console.log(`pegando array no intervalor ${i * 5} ate ${i * 5 + 4}`)
+        console.log(`pegando array no intervalor ${i * 5} ate ${i * 5 + 4}`);
         const emailsBatchSubset = emailsBatch.slice(i * 5, i * 5 + 4);
 
         let responseZeroBounce = await validateEmail(
@@ -155,9 +155,7 @@ export default function CheckEmails() {
               {...register("memo")}
             />
 
-            {errors.memo && (
-              <ErrorMessage>{errors.memo.message}</ErrorMessage>
-            )}
+            {errors.memo && <ErrorMessage>{errors.memo.message}</ErrorMessage>}
 
             <Button
               title={"Create Rollup List"}
