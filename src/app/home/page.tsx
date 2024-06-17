@@ -1,13 +1,9 @@
 "use client";
-import { CandidateProps } from "@/@types";
-
 import { useState } from "react";
 
 import { useUser } from "../hooks/userContext";
 
-import { useRouter } from "next/navigation";
-
-import { Container, Content, Form, Menu, Title } from "./styles";
+import { Container, Content, ErrorMessage, Form, Menu, Title } from "./styles";
 
 import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
@@ -24,6 +20,8 @@ import {
   insertRecordOnRollUpList,
 } from "@/services/PCR/rollupService";
 import { validateEmail } from "@/services/ZeroBounce/emailService";
+import { LoadingPlaceholder } from "@/components/LoadingPlaceholder";
+import { CandidatesProps } from "@/@types";
 
 const checkEmailsFormSchema = yup.object({
   listCode: yup.string().required(),
@@ -46,8 +44,6 @@ export enum CheckedEmailStatusEnum {
 
 export default function Home() {
   const { user } = useUser();
-
-  const router = useRouter();
   const [steps, setSteps] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -74,6 +70,7 @@ export default function Home() {
   }
 
   async function emailValidation(apiKey: string, emailsBatch: string[]) {
+    setSteps(2);
     try {
       const response = await validateEmail(apiKey, emailsBatch);
 
@@ -83,7 +80,12 @@ export default function Home() {
     }
   }
 
-  async function createList(userName: string, description: string, memo: string) {
+  async function createList(
+    userName: string,
+    description: string,
+    memo: string
+  ) {
+    setSteps(3);
     try {
       const response = await createRollUpList(
         {
@@ -126,7 +128,7 @@ export default function Home() {
         user.SessionId
       );
 
-      candidates = response.Results.map((candidate: CandidateProps) => {
+      candidates = response.Results.map((candidate: CandidatesProps) => {
         return {
           ...candidate,
           status: "",
@@ -134,7 +136,7 @@ export default function Home() {
         };
       });
 
-      emailsBatch = candidates.map((candidate: any) => {
+      emailsBatch = candidates.map((candidate: CandidatesProps) => {
         if (!candidate.Candidate.EmailAddress) return "";
         return candidate.Candidate.EmailAddress;
       });
@@ -148,10 +150,16 @@ export default function Home() {
       candidates = updatedCandidates;
 
       const onlyCandidatesWithValidEmail = candidates.filter(
-        (candidate: any) => candidate.status === CheckedEmailStatusEnum.Valid
+        (candidate: CandidatesProps) => candidate.status === CheckedEmailStatusEnum.Valid
       );
 
-      const rollUpCode = await createList(user.Login, data.description, data.memo)
+      const rollUpCode = await createList(
+        user.Login,
+        data.description,
+        data.memo
+      );
+
+      setSteps(4)
 
       onlyCandidatesWithValidEmail.forEach((candidate: any) => {
         insertRecordOnRollUpList(
@@ -162,73 +170,106 @@ export default function Home() {
       });
 
       setIsLoading(false);
+      setSteps(1);
     } catch (error) {
       console.log(error);
       setIsLoading(false);
     }
   }
 
-  const StepsComponent = () => {
+  if (isLoading) {
     switch (steps) {
       case 1:
         return (
-          <>
-            <Title>Check emails and create a rollup list for it</Title>
-            <Form onSubmit={handleSubmit(handleForm)}>
-              <h1>Your Data</h1>
-              <CustomInput
-                placeholder={"ADMIN.001"}
-                label={"Rollup List Code"}
-                {...register("listCode")}
-              />
-              <CustomInput
-                placeholder={"Your Rollup List Title"}
-                label={"Description"}
-                {...register("description")}
-              />
-              <CustomInput
-                placeholder={"A brief description "}
-                label={"Memo"}
-                {...register("memo")}
-              />
-              <CustomInput
-                placeholder={""}
-                label={"Zero Bounce API Key"}
-                {...register("ZBApiKey")}
-              />
-              <Button
-                title={"Get Started"}
-                type="submit"
-                isLoading={isLoading}
-              />
-            </Form>
-          </>
+          <Container>
+            <Header title={"Wellcome to PCR Trasnslator !"} />
+            <Content>
+              <LoadingPlaceholder message={"Getting your rollup records..."} />
+            </Content>
+          </Container>
         );
-
       case 2:
         return (
-          <>
-            <h1>Menu</h1>
-            <Menu>
-              <Button
-                title={"Check Emails"}
-                isLoading={false}
-                onClick={() => router.push("/checkEmails")}
+          <Container>
+            <Header title={"Wellcome to PCR Trasnslator !"} />
+            <Content>
+              <LoadingPlaceholder
+                message={"Checking your candidates email..."}
               />
-            </Menu>
-          </>
+            </Content>
+          </Container>
+        );
+      case 3:
+        return (
+          <Container>
+            <Header title={"Wellcome to PCR Trasnslator !"} />
+            <Content>
+              <LoadingPlaceholder message={"Creating your rollup list..."} />
+            </Content>
+          </Container>
+        );
+      case 4:
+        return (
+          <Container>
+            <Header title={"Wellcome to PCR Trasnslator !"} />
+            <Content>
+              <LoadingPlaceholder message={"Populating your rollup list..."} />
+            </Content>
+          </Container>
         );
 
       default:
         return null;
     }
+  }
+
+  const FormComponent = () => {
+    return (
+      <>
+        <Title>Check emails and create a rollup list for it</Title>
+        <Form onSubmit={handleSubmit(handleForm)}>
+          <h1>Your Data</h1>
+          <CustomInput
+            placeholder={"ADMIN.001"}
+            label={"Rollup List Code"}
+            {...register("listCode")}
+          />
+          {errors.listCode && (
+            <ErrorMessage>{errors.listCode.message}</ErrorMessage>
+          )}
+          <CustomInput
+            placeholder={"Your Rollup List Title"}
+            label={"Description"}
+            {...register("description")}
+          />
+          {errors.description && (
+            <ErrorMessage>{errors.description.message}</ErrorMessage>
+          )}
+          <CustomInput
+            placeholder={"A brief description "}
+            label={"Memo"}
+            {...register("memo")}
+          />
+          {errors.memo && <ErrorMessage>{errors.memo.message}</ErrorMessage>}
+          <CustomInput
+            placeholder={""}
+            label={"Zero Bounce API Key"}
+            {...register("ZBApiKey")}
+          />
+          {errors.ZBApiKey && (
+            <ErrorMessage>{errors.ZBApiKey.message}</ErrorMessage>
+          )}
+          <Button title={"Get Started"} type="submit" isLoading={isLoading} />
+        </Form>
+      </>
+    );
   };
 
   return (
     <Container>
       <Header title={"Wellcome to PCR Trasnslator !"} />
       <Content>
-        <Modal content={<StepsComponent />} />
+        <Modal content={<FormComponent />} />
       </Content>
     </Container>
   );

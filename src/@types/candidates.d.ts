@@ -24,13 +24,13 @@ export type CandidateFields =
   | 'DefaultCurrency'
   | 'UserName';
 
-  export interface CandidateProps {
-    CandidateId: number;
-    FirstName: string;
-    LastName: string;
-    EmailAddress: string;
-    UserName: string;
-    Title: string
-    status?: string
-    sub_status?: string
+  export interface CandidatesProps {
+    CandidateId: number
+    Candidate: Candidate
+    status?: string,
+    sub_status?: string,
+  }
+  
+  export interface Candidate {
+    EmailAddress: string
   }

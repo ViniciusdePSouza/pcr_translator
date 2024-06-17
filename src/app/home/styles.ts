@@ -63,3 +63,10 @@ export const Title = styled.h1`
   color: ${({ theme }) => theme.COLORS.PRIMARY};
   margin-bottom: 1.8rem;
 `;
+
+export const ErrorMessage = styled.span`
+  color: ${({ theme }) => theme.COLORS.RED};
+  font-size: 16px;
+  font-weight: 400;
+  margin-top: .8rem;
+`;

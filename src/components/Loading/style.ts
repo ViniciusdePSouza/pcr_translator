@@ -7,16 +7,6 @@ export const Container = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-
-  h1 {
-    width: 80%;
-    color: ${({ theme }) => theme.COLORS.PRIMARY};
-
-    font-size: 1.6rem;
-    font-weight: 700;
-    text-align: center;
-    margin-bottom: 1.6rem;
-  }
 `;
 
 export const Loader = styled.div`
