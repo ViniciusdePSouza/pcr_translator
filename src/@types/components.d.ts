@@ -18,3 +18,7 @@ export interface CandidateCardProps {
 export interface UtilsBarProps {
   candidates: CandidateProps[];
 }
+
+export interface LoadingPlaceholderProps {
+  message: string; // Define message as a string type
+}

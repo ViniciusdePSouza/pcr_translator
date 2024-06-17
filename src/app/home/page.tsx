@@ -1,10 +1,13 @@
 "use client";
+import { CandidatesProps, CheckEmailsFormData } from "@/@types";
+
 import { useState } from "react";
 
 import { useUser } from "../hooks/userContext";
 
-import { Container, Content, ErrorMessage, Form, Menu, Title } from "./styles";
+import { Container, Content, ErrorMessage, Form, Title } from "./styles";
 
+import { LoadingPlaceholder } from "@/components/LoadingPlaceholder";
 import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
 import { Header } from "@/components/Header";
@@ -20,8 +23,6 @@ import {
   insertRecordOnRollUpList,
 } from "@/services/PCR/rollupService";
 import { validateEmail } from "@/services/ZeroBounce/emailService";
-import { LoadingPlaceholder } from "@/components/LoadingPlaceholder";
-import { CandidatesProps } from "@/@types";
 
 const checkEmailsFormSchema = yup.object({
   listCode: yup.string().required(),
@@ -30,14 +31,7 @@ const checkEmailsFormSchema = yup.object({
   ZBApiKey: yup.string().required(),
 });
 
-interface CheckEmailsFormData {
-  listCode: string;
-  description: string;
-  memo: string;
-  ZBApiKey: string;
-}
-
-export enum CheckedEmailStatusEnum {
+enum CheckedEmailStatusEnum {
   Valid = "valid",
   Invalid = "invalid",
 }
