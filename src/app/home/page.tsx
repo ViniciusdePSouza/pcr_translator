@@ -5,7 +5,14 @@ import { useState } from "react";
 
 import { useUser } from "../hooks/userContext";
 
-import { Container, Content, ErrorMessage, Form, Title } from "./styles";
+import {
+  Container,
+  Content,
+  ErrorMessage,
+  FinalFeedbackWrapper,
+  Form,
+  Title,
+} from "./styles";
 
 import { LoadingPlaceholder } from "@/components/LoadingPlaceholder";
 import { Button } from "@/components/Button";
@@ -36,6 +43,10 @@ enum CheckedEmailStatusEnum {
   Invalid = "invalid",
 }
 
+interface ZeroBounceError {
+  Message: string;
+}
+
 export default function Home() {
   const { user } = useUser();
   const [steps, setSteps] = useState(1);
@@ -44,6 +55,7 @@ export default function Home() {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<CheckEmailsFormData>({
     resolver: yupResolver(checkEmailsFormSchema),
@@ -59,7 +71,7 @@ export default function Home() {
 
       return response!.data;
     } catch (error) {
-      console.log(error);
+      alert(error);
     }
   }
 
@@ -70,7 +82,7 @@ export default function Home() {
 
       return response;
     } catch (error) {
-      console.log(error);
+      alert(error);
     }
   }
 
@@ -92,7 +104,7 @@ export default function Home() {
 
       return response.RollupCode;
     } catch (error) {
-      console.log(error);
+      alert(error);
     }
   }
 
@@ -137,14 +149,18 @@ export default function Home() {
 
       const responseZB = await emailValidation(data.ZBApiKey, emailsBatch);
 
-      if (responseZB === undefined) throw Error("Deu bigode");
+      if (responseZB === undefined)
+        throw Error(
+          "No response from Zero Bounce server, please try again later"
+        );
 
       const updatedCandidates = updateCandidates(candidates, responseZB);
 
       candidates = updatedCandidates;
 
       const onlyCandidatesWithValidEmail = candidates.filter(
-        (candidate: CandidatesProps) => candidate.status === CheckedEmailStatusEnum.Valid
+        (candidate: CandidatesProps) =>
+          candidate.status === CheckedEmailStatusEnum.Valid
       );
 
       const rollUpCode = await createList(
@@ -153,7 +169,7 @@ export default function Home() {
         data.memo
       );
 
-      setSteps(4)
+      setSteps(4);
 
       onlyCandidatesWithValidEmail.forEach((candidate: any) => {
         insertRecordOnRollUpList(
@@ -163,10 +179,11 @@ export default function Home() {
         );
       });
 
-      setIsLoading(false);
-      setSteps(1);
+      setSteps(5);
+
+      reset()
     } catch (error) {
-      console.log(error);
+      alert(error);
       setIsLoading(false);
     }
   }
@@ -213,7 +230,27 @@ export default function Home() {
         );
 
       default:
-        return null;
+        return (
+          <Container>
+            <Header title={"Wellcome to PCR Trasnslator !"} />
+            <Content>
+              <FinalFeedbackWrapper>
+                <span>
+                  Awesome, everything went right!! Check your PCR System and you
+                  will see your new roll up list updated
+                </span>
+                <Button
+                  title={"Start Again"}
+                  isLoading={false}
+                  onClick={() => {
+                    setSteps(1);
+                    setIsLoading(false);
+                  }}
+                />
+              </FinalFeedbackWrapper>
+            </Content>
+          </Container>
+        );
     }
   }
 

@@ -24,6 +24,14 @@ export const Container = styled.div`
   min-width: 100vw;
 
   background-color: ${({ theme }) => theme.COLORS.WHITE_100};
+
+  span {
+    font-size: 1.8rem;
+    font-weight: 400;
+    text-align: center;
+    color: ${({ theme }) => theme.COLORS.WHITE_100};
+    margin-bottom: 1.8rem;
+  }
 `;
 
 export const Menu = styled.div`
@@ -68,5 +76,17 @@ export const ErrorMessage = styled.span`
   color: ${({ theme }) => theme.COLORS.RED};
   font-size: 16px;
   font-weight: 400;
-  margin-top: .8rem;
+  margin-top: 0.8rem;
+`;
+
+export const FinalFeedbackWrapper = styled.div`
+  width: 70%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  @media (min-width: 768px) {
+    width: 20%;
+  }
 `;

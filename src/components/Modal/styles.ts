@@ -9,6 +9,6 @@ export const Container = styled.div`
   background-color: ${({ theme }) => theme.COLORS.WHITE_100};
 
   @media (min-width: 768px) {
-    width: 50%;
+    width: 30%;
   }
 `;
