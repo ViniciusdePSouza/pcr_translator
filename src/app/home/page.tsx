@@ -298,7 +298,7 @@ export default function Home() {
 
   return (
     <Container>
-      <Header title={"Wellcome to PCR Trasnslator !"} />
+      <Header title={"Wellcome to PCR Translator !"} />
       <Content>
         <Modal content={<FormComponent />} />
       </Content>

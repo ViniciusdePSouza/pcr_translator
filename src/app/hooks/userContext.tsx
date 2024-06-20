@@ -25,6 +25,14 @@ function UserProvider({ children }: UserProviderProps) {
     SetUser(user);
   }
 
+  function signOut() {
+    localStorage.removeItem("@aluchef:token");
+    localStorage.removeItem("@aluchef:user");
+
+    SetUser({} as LoginApiResponseType);
+  }
+
+
   useEffect(() => {
     const user = localStorage.getItem("@pcr-translator:user");
 
@@ -32,7 +40,7 @@ function UserProvider({ children }: UserProviderProps) {
   }, []);
 
   return (
-    <UserContext.Provider value={{ user, saveUser }}>
+    <UserContext.Provider value={{ user, saveUser, signOut }}>
       {children}
     </UserContext.Provider>
   );
