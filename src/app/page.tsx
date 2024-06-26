@@ -28,6 +28,7 @@ export default function Home() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting, isValid, isDirty },
+    setValue
   } = useForm<LoginFormData>({
     resolver: yupResolver(loginFormSchema),
   });
@@ -35,6 +36,19 @@ export default function Home() {
   const router = useRouter();
 
   const { saveUser } = useUser();
+
+  function savePcrLoginInfo({ apiKey, appId, databaseId }: LoginFormData) {
+    const pcrInfoObject = {
+      apiKey,
+      appId,
+      databaseId,
+    };
+
+    localStorage.setItem(
+      "@pcr-translator:pcrInfoObject",
+      JSON.stringify(pcrInfoObject)
+    );
+  }
 
   async function handleLogin(data: LoginFormData) {
     try {
@@ -46,6 +60,7 @@ export default function Home() {
       };
 
       saveUser(userObject);
+      savePcrLoginInfo(data);
 
       if (response?.SessionId) {
         router.push("/home");
@@ -60,6 +75,17 @@ export default function Home() {
       alert("Please fill out the form correctly");
     }
   }, [errors, isSubmitting, isValid, isDirty]);
+
+  useEffect(() => {
+    const pcrLoginInfo = localStorage.getItem("@pcr-translator:pcrInfoObject");
+
+    if (pcrLoginInfo) {
+      const { apiKey, appId, databaseId } = JSON.parse(pcrLoginInfo);
+      setValue("apiKey", apiKey);
+      setValue("appId", appId);
+      setValue("databaseId", databaseId);
+    }
+  }, []);
 
   return (
     <Container>
