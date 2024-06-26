@@ -1,9 +1,15 @@
 "use client";
-import { CandidatesProps, CheckEmailsFormData } from "@/@types";
+import {
+  CandidatesProps,
+  CheckEmailsFormData,
+  LoginApiResponseType,
+} from "@/@types";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useUser } from "../hooks/userContext";
+
+import { useRouter } from "next/navigation";
 
 import {
   Container,
@@ -48,9 +54,11 @@ interface ZeroBounceError {
 }
 
 export default function Home() {
-  const { user } = useUser();
+  const { user, signOut, saveUser, checkExpiredToken } = useUser();
   const [steps, setSteps] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+
+  const navigator = useRouter();
 
   const {
     register,
@@ -181,12 +189,30 @@ export default function Home() {
 
       setSteps(5);
 
-      reset()
+      reset();
     } catch (error) {
       alert(error);
       setIsLoading(false);
     }
   }
+
+  useEffect(() => {
+    const user = localStorage.getItem("@pcr-translator:user");
+
+    if (user) {
+      const userObj: LoginApiResponseType = JSON.parse(user);
+      saveUser(userObj);
+      const loginDate = new Date(userObj.loginDate);
+
+      if (checkExpiredToken(loginDate)) {
+        signOut();
+        navigator.replace("/");
+      }
+    } else {
+      signOut();
+      navigator.replace("/");
+    }
+  }, []);
 
   if (isLoading) {
     switch (steps) {

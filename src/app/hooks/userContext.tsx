@@ -26,21 +26,19 @@ function UserProvider({ children }: UserProviderProps) {
   }
 
   function signOut() {
-    localStorage.removeItem("@aluchef:token");
-    localStorage.removeItem("@aluchef:user");
+    localStorage.removeItem("@pcr-translator:user");
 
     SetUser({} as LoginApiResponseType);
   }
 
-
-  useEffect(() => {
-    const user = localStorage.getItem("@pcr-translator:user");
-
-    if (user) SetUser(JSON.parse(user));
-  }, []);
+  function checkExpiredToken(loginDate: Date) {
+    const currentDate = Date.now();
+    const twoHoursInMilliseconds = 2 * 60 * 60 * 1000;
+    return (currentDate - loginDate.getTime() > twoHoursInMilliseconds);
+  }
 
   return (
-    <UserContext.Provider value={{ user, saveUser, signOut }}>
+    <UserContext.Provider value={{ user, saveUser, signOut, checkExpiredToken }}>
       {children}
     </UserContext.Provider>
   );

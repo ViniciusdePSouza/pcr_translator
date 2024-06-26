@@ -5,4 +5,5 @@ export interface LoginApiResponseType {
     SessionId: string;
     UID:string;
     WebToken: string;
+    loginDate: Date;
 }

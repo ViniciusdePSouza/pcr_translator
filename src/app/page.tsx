@@ -39,8 +39,13 @@ export default function Home() {
   async function handleLogin(data: LoginFormData) {
     try {
       const response = await login(data);
+      const loginDate = new Date();
+      const userObject = {
+        ...response,
+        loginDate,
+      };
 
-      saveUser(response);
+      saveUser(userObject);
 
       if (response?.SessionId) {
         router.push("/home");
