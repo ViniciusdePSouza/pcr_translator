@@ -257,12 +257,12 @@ export default function Home() {
   const FormComponent = () => {
     return (
       <>
-        <Title>Check emails and create a rollup list for it</Title>
+        <Title>Zero Bounce Email verification</Title>
         <Form onSubmit={handleSubmit(handleForm)}>
-          <h1>Your Data</h1>
+          <h1>Your PCR Data</h1>
           <CustomInput
             placeholder={"ADMIN.001"}
-            label={"Rollup List Code"}
+            label={"Rollup List Code to Verify Email Adress"}
             {...register("listCode")}
           />
           {errors.listCode && (
@@ -270,7 +270,7 @@ export default function Home() {
           )}
           <CustomInput
             placeholder={"Your Rollup List Title"}
-            label={"Description"}
+            label={"Name of the New List with Verified Emails"}
             {...register("description")}
           />
           {errors.description && (
@@ -278,7 +278,7 @@ export default function Home() {
           )}
           <CustomInput
             placeholder={"A brief description "}
-            label={"Memo"}
+            label={"Description of the New List with Verified Emails"}
             {...register("memo")}
           />
           {errors.memo && <ErrorMessage>{errors.memo.message}</ErrorMessage>}
