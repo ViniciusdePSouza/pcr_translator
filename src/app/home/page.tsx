@@ -145,8 +145,6 @@ export default function Home() {
       const updatedCandidate = candidate;
       if (action === "Work Email") {
         const workEmailValue = candidate.Candidate.CustomFields.find((field: any) => field.FieldName === "Email_Work")?.Value;
-        console.log(`WORK EMAIL ----------------------------------------------------------------`)
-        console.log(workEmailValue)
         if (workEmailValue) {
           responseZBApi.forEach((item: any) => {
             if (workEmailValue.some((email: string) => email === item.emailAddress)) {
@@ -216,7 +214,6 @@ export default function Home() {
         responseZB,
         emailType!
       );
-
       candidates = updatedCandidates;
 
       const onlyCandidatesWithValidEmail = candidates.filter(
@@ -249,8 +246,8 @@ export default function Home() {
     }
   }
 
-  const handleEmailTypeChange = (selectedOption: SelectOptionsProps) => {
-    setEmailType(selectedOption.value as "Work Email" | "Personal Email");
+  const handleEmailTypeChange = () => {
+    setEmailType(emailType === "Work Email" ? "Personal Email" : "Work Email" );
   };
 
   useEffect(() => {
