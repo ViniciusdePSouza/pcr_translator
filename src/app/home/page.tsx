@@ -17,6 +17,7 @@ import {
   ErrorMessage,
   FinalFeedbackWrapper,
   Form,
+  StyledSelect,
   Title,
 } from "./styles";
 
@@ -53,12 +54,25 @@ interface ZeroBounceError {
   Message: string;
 }
 
+interface SelectOptionsProps {
+  value: string;
+  label: string;
+}
+
 export default function Home() {
   const { user, signOut, saveUser, checkExpiredToken } = useUser();
   const [steps, setSteps] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [emailType, setEmailType] = useState<
+    "Work Email" | "Personal Email" | null
+  >(null);
 
   const navigator = useRouter();
+
+  const options: SelectOptionsProps[] = [
+    { value: "Work Email", label: "Work Email" },
+    { value: "Personal Email", label: "Personal Email" },
+  ];
 
   const {
     register,
@@ -122,18 +136,35 @@ export default function Home() {
     }
   }
 
-  function updateCandidates(candidates: any[], responseZBApi: any[]) {
+  function updateCandidates(
+    candidates: any[],
+    responseZBApi: any[],
+    action: "Work Email" | "Personal Email"
+  ) {
     const updatedCandidates = candidates.map((candidate: any) => {
       const updatedCandidate = candidate;
-      responseZBApi.forEach((item: any) => {
-        if (item.emailAddress === candidate.Candidate.EmailAddress) {
-          updatedCandidate.status = item.status;
-          updatedCandidate.sub_status = item.sub_status;
+      if (action === "Work Email") {
+        const workEmailValue = candidate.Candidate.CustomFields.find((field: any) => field.FieldName === "Email_Work")?.Value;
+        console.log(`WORK EMAIL ----------------------------------------------------------------`)
+        console.log(workEmailValue)
+        if (workEmailValue) {
+          responseZBApi.forEach((item: any) => {
+            if (workEmailValue.some((email: string) => email === item.emailAddress)) {
+              updatedCandidate.status = item.status;
+              updatedCandidate.sub_status = item.sub_status;
+            }
+          });
         }
-      });
+      } else {
+        responseZBApi.forEach((item: any) => {
+          if (item.emailAddress === candidate.Candidate.EmailAddress) {
+            updatedCandidate.status = item.status;
+            updatedCandidate.sub_status = item.sub_status;
+          }
+        });
+      }
       return updatedCandidate;
     });
-
     return updatedCandidates;
   }
 
@@ -144,7 +175,7 @@ export default function Home() {
       setIsLoading(true);
       const response = await fetchRecords(
         data.listCode,
-        ["Candidate.EmailAddress", "CandidateId"],
+        ["Candidate.EmailAddress", "CandidateId", "Candidate.CustomFields"],
         user.SessionId
       );
 
@@ -156,19 +187,35 @@ export default function Home() {
         };
       });
 
+      let workEmailsBatch: string[] = [];
+      candidates.forEach((candidate: any) => {
+        candidate.Candidate.CustomFields.forEach((field: any) => {
+          if (field.FieldName === "Email_Work") {
+            workEmailsBatch = [...workEmailsBatch, ...field.Value];
+          }
+        });
+      });
+
       emailsBatch = candidates.map((candidate: CandidatesProps) => {
         if (!candidate.Candidate.EmailAddress) return "";
         return candidate.Candidate.EmailAddress;
       });
 
-      const responseZB = await emailValidation(data.ZBApiKey, emailsBatch);
+      const responseZB = await emailValidation(
+        data.ZBApiKey,
+        emailType === "Work Email" ? workEmailsBatch : emailsBatch
+      );
 
       if (responseZB === undefined)
         throw Error(
           "No response from Zero Bounce server, please try again later"
         );
 
-      const updatedCandidates = updateCandidates(candidates, responseZB);
+      const updatedCandidates = updateCandidates(
+        candidates,
+        responseZB,
+        emailType!
+      );
 
       candidates = updatedCandidates;
 
@@ -201,6 +248,10 @@ export default function Home() {
       setIsLoading(false);
     }
   }
+
+  const handleEmailTypeChange = (selectedOption: SelectOptionsProps) => {
+    setEmailType(selectedOption.value as "Work Email" | "Personal Email");
+  };
 
   useEffect(() => {
     const user = localStorage.getItem("@pcr-translator:user");
@@ -310,6 +361,7 @@ export default function Home() {
           {errors.listCode && (
             <ErrorMessage>{errors.listCode.message}</ErrorMessage>
           )}
+
           <CustomInput
             placeholder={"Your Rollup List Title"}
             label={"Name of the New List with Verified Emails"}
@@ -318,12 +370,14 @@ export default function Home() {
           {errors.description && (
             <ErrorMessage>{errors.description.message}</ErrorMessage>
           )}
+
           <CustomInput
             placeholder={"A brief description "}
             label={"Description of the New List with Verified Emails"}
             {...register("memo")}
           />
           {errors.memo && <ErrorMessage>{errors.memo.message}</ErrorMessage>}
+
           <CustomInput
             placeholder={""}
             label={"Zero Bounce API Key"}
@@ -332,6 +386,12 @@ export default function Home() {
           {errors.ZBApiKey && (
             <ErrorMessage>{errors.ZBApiKey.message}</ErrorMessage>
           )}
+
+          <StyledSelect
+            options={options}
+            onChange={handleEmailTypeChange}
+            value={options.find((option) => option.value === emailType)}
+          />
           <Button title={"Get Started"} type="submit" isLoading={isLoading} />
         </Form>
       </>

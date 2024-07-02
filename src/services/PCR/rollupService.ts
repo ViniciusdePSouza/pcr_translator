@@ -48,7 +48,7 @@ export async function getRollUpListsRecords(
   });
 
   const url = resource + queryParam + code + fieldParamsUrl + fields;
-
+console.log(url)
   try {
     const response = await pcrApi.get(url, {
       headers: {

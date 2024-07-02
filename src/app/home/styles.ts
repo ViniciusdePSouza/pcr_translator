@@ -1,3 +1,4 @@
+import Select from "react-select";
 import styled from "styled-components";
 
 export const Content = styled.div`
@@ -89,4 +90,21 @@ export const FinalFeedbackWrapper = styled.div`
   @media (min-width: 768px) {
     width: 20%;
   }
+`;
+
+export const SelectWrapper = styled.div`
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+
+  margin-top: 2rem;
+`;
+
+export const StyledSelect = styled(Select)`
+  width: 40%;
+  margin-top: 2rem;
+  align-self: flex-start;
+
+  font-size: 1.2rem;
 `;
