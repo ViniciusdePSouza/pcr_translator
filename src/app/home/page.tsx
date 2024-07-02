@@ -65,6 +65,7 @@ export default function Home() {
     handleSubmit,
     reset,
     formState: { errors },
+    setValue,
   } = useForm<CheckEmailsFormData>({
     resolver: yupResolver(checkEmailsFormSchema),
   });
@@ -87,6 +88,11 @@ export default function Home() {
     setSteps(2);
     try {
       const response = await validateEmail(apiKey, emailsBatch);
+
+      localStorage.setItem(
+        "@pcr-translator:zerouBounceApi",
+        JSON.stringify(apiKey)
+      );
 
       return response;
     } catch (error) {
@@ -211,6 +217,16 @@ export default function Home() {
     } else {
       signOut();
       navigator.replace("/");
+    }
+  }, []);
+
+  useEffect(() => {
+    const zerobounceApi = localStorage.getItem(
+      "@pcr-translator:zerouBounceApi"
+    );
+
+    if (zerobounceApi) {
+      setValue("ZBApiKey", zerobounceApi);
     }
   }, []);
 
