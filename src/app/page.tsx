@@ -1,5 +1,5 @@
 "use client";
-import { LoginFormData } from "@/@types";
+import { LoginApiResponseType, LoginFormData } from "@/@types";
 
 import { CustomInput } from "@/components/CustomInput";
 import { Button } from "@/components/Button";
@@ -35,7 +35,7 @@ export default function Home() {
 
   const router = useRouter();
 
-  const { saveUser } = useUser();
+  const { saveUser, checkExpiredToken } = useUser();
 
   function savePcrLoginInfo({ apiKey, appId, databaseId }: LoginFormData) {
     const pcrInfoObject = {
@@ -86,6 +86,17 @@ export default function Home() {
       setValue("databaseId", databaseId);
     }
   }, []);
+
+  useEffect(() => {
+    const user = localStorage.getItem("@pcr-translator:user");
+
+    if(user) {
+      const userObj: LoginApiResponseType = JSON.parse(user);
+      const loginDate = new Date(userObj.loginDate);
+      
+      if(!checkExpiredToken(loginDate)) router.push("/home");
+    }
+  }, [])
 
   return (
     <Container>
