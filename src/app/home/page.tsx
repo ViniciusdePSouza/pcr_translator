@@ -197,63 +197,62 @@ export default function Home() {
       setSteps(1);
       setIsLoading(false);
       navigator.push("/menu");
-      return;
 
-      let workEmailsBatch: string[] = [];
-      candidates.forEach((candidate: any) => {
-        candidate.Candidate.CustomFields.forEach((field: any) => {
-          if (field.FieldName === "Email_Work") {
-            workEmailsBatch = [...workEmailsBatch, ...field.Value];
-          }
-        });
-      });
+      // let workEmailsBatch: string[] = [];
+      // candidates.forEach((candidate: any) => {
+      //   candidate.Candidate.CustomFields.forEach((field: any) => {
+      //     if (field.FieldName === "Email_Work") {
+      //       workEmailsBatch = [...workEmailsBatch, ...field.Value];
+      //     }
+      //   });
+      // });
 
-      emailsBatch = candidates.map((candidate: CandidatesProps) => {
-        if (!candidate.Candidate.EmailAddress) return "";
-        return candidate.Candidate.EmailAddress;
-      });
+      // emailsBatch = candidates.map((candidate: CandidatesProps) => {
+      //   if (!candidate.Candidate.EmailAddress) return "";
+      //   return candidate.Candidate.EmailAddress;
+      // });
 
-      const responseZB = await emailValidation(
-        data.ZBApiKey,
-        emailType === "Work Email" ? workEmailsBatch : emailsBatch
-      );
+      // const responseZB = await emailValidation(
+      //   data.ZBApiKey,
+      //   emailType === "Work Email" ? workEmailsBatch : emailsBatch
+      // );
 
-      if (responseZB === undefined)
-        throw Error(
-          "No response from Zero Bounce server, please try again later"
-        );
+      // if (responseZB === undefined)
+      //   throw Error(
+      //     "No response from Zero Bounce server, please try again later"
+      //   );
 
-      const updatedCandidates = updateCandidates(
-        candidates,
-        responseZB,
-        emailType!
-      );
-      candidates = updatedCandidates;
+      // const updatedCandidates = updateCandidates(
+      //   candidates,
+      //   responseZB,
+      //   emailType!
+      // );
+      // candidates = updatedCandidates;
 
-      const onlyCandidatesWithValidEmail = candidates.filter(
-        (candidate: CandidatesProps) =>
-          candidate.status === CheckedEmailStatusEnum.Valid
-      );
+      // const onlyCandidatesWithValidEmail = candidates.filter(
+      //   (candidate: CandidatesProps) =>
+      //     candidate.status === CheckedEmailStatusEnum.Valid
+      // );
 
-      const rollUpCode = await createList(
-        user.Login,
-        data.description,
-        data.memo
-      );
+      // const rollUpCode = await createList(
+      //   user.Login,
+      //   data.description,
+      //   data.memo
+      // );
 
-      setSteps(4);
+      // setSteps(4);
 
-      onlyCandidatesWithValidEmail.forEach((candidate: any) => {
-        insertRecordOnRollUpList(
-          rollUpCode,
-          user.SessionId,
-          candidate.CandidateId
-        );
-      });
+      // onlyCandidatesWithValidEmail.forEach((candidate: any) => {
+      //   insertRecordOnRollUpList(
+      //     rollUpCode,
+      //     user.SessionId,
+      //     candidate.CandidateId
+      //   );
+      // });
 
-      setSteps(5);
+      // setSteps(5);
 
-      reset();
+      // reset();
     } catch (error) {
       alert(error);
       setIsLoading(false);
