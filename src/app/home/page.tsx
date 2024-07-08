@@ -37,12 +37,13 @@ import {
   insertRecordOnRollUpList,
 } from "@/services/PCR/rollupService";
 import { validateEmail } from "@/services/ZeroBounce/emailService";
+import { useCandidates } from "../hooks/candidatesContext";
 
 const checkEmailsFormSchema = yup.object({
   listCode: yup.string().required(),
-  description: yup.string().required(),
-  memo: yup.string().required(),
-  ZBApiKey: yup.string().required(),
+  // description: yup.string().required(),
+  // memo: yup.string().required(),
+  // ZBApiKey: yup.string().required(),
 });
 
 enum CheckedEmailStatusEnum {
@@ -61,6 +62,7 @@ interface SelectOptionsProps {
 
 export default function Home() {
   const { user, signOut, saveUser, checkExpiredToken } = useUser();
+  const { saveCandidates } = useCandidates();
   const [steps, setSteps] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [emailType, setEmailType] = useState<
@@ -144,10 +146,16 @@ export default function Home() {
     const updatedCandidates = candidates.map((candidate: any) => {
       const updatedCandidate = candidate;
       if (action === "Work Email") {
-        const workEmailValue = candidate.Candidate.CustomFields.find((field: any) => field.FieldName === "Email_Work")?.Value;
+        const workEmailValue = candidate.Candidate.CustomFields.find(
+          (field: any) => field.FieldName === "Email_Work"
+        )?.Value;
         if (workEmailValue) {
           responseZBApi.forEach((item: any) => {
-            if (workEmailValue.some((email: string) => email === item.emailAddress)) {
+            if (
+              workEmailValue.some(
+                (email: string) => email === item.emailAddress
+              )
+            ) {
               updatedCandidate.status = item.status;
               updatedCandidate.sub_status = item.sub_status;
             }
@@ -184,6 +192,12 @@ export default function Home() {
           sub_status: "",
         };
       });
+
+      saveCandidates(candidates)
+      setSteps(1);
+      setIsLoading(false);
+      navigator.push("/menu");
+      return;
 
       let workEmailsBatch: string[] = [];
       candidates.forEach((candidate: any) => {
@@ -247,7 +261,7 @@ export default function Home() {
   }
 
   const handleEmailTypeChange = () => {
-    setEmailType(emailType === "Work Email" ? "Personal Email" : "Work Email" );
+    setEmailType(emailType === "Work Email" ? "Personal Email" : "Work Email");
   };
 
   useEffect(() => {
@@ -347,19 +361,19 @@ export default function Home() {
   const FormComponent = () => {
     return (
       <>
-        <Title>Zero Bounce Email verification</Title>
+        <Title>Lets Get your candidates data!</Title>
         <Form onSubmit={handleSubmit(handleForm)}>
           <h1>Your PCR Data</h1>
           <CustomInput
             placeholder={"ADMIN.001"}
-            label={"Rollup List Code to Verify Email Adress"}
+            label={"Rollup List Code Will want to work with"}
             {...register("listCode")}
           />
           {errors.listCode && (
             <ErrorMessage>{errors.listCode.message}</ErrorMessage>
           )}
 
-          <CustomInput
+          {/* <CustomInput
             placeholder={"Your Rollup List Title"}
             label={"Name of the New List with Verified Emails"}
             {...register("description")}
@@ -388,7 +402,7 @@ export default function Home() {
             options={options}
             onChange={handleEmailTypeChange}
             value={options.find((option) => option.value === emailType)}
-          />
+          /> */}
           <Button title={"Get Started"} type="submit" isLoading={isLoading} />
         </Form>
       </>
