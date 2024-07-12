@@ -8,7 +8,15 @@ export type LoginFormData = {
 
 export interface CheckEmailsFormData {
   listCode: string;
-  // description: string;
-  // memo: string;
-  // ZBApiKey: string;
+}
+
+export  interface SelectOptionsProps {
+  value: string;
+  label: string;
+}
+
+export interface CheckEmailsFormDataTrue {
+  description: string;
+  memo: string;
+  ZBApiKey: string;
 }

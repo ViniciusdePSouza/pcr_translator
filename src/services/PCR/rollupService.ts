@@ -40,6 +40,7 @@ export async function getRollUpListsRecords(
   const resource = "/CandidatesV2/RollupLists";
   const queryParam = "?Query=";
   const code = `Code%20eq%20${listCode}`;
+  const resultsPerPageParam = `&ResultsPerPage=500`;
   let fieldParamsUrl = "&Fields=";
   let fields = "";
 
@@ -47,7 +48,7 @@ export async function getRollUpListsRecords(
     fields = fields + `${fieldParams}%2C%20`;
   });
 
-  const url = resource + queryParam + code + fieldParamsUrl + fields;
+  const url = resource + queryParam + code + resultsPerPageParam + fieldParamsUrl + fields;
 console.log(url)
   try {
     const response = await pcrApi.get(url, {

@@ -1,3 +1,5 @@
+"use client"
+
 import { SignOut } from "phosphor-react";
 import { Container } from "./styles";
 import { defaultTheme } from "@/app/styles/theme/default";

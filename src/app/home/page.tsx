@@ -3,6 +3,7 @@ import {
   CandidatesProps,
   CheckEmailsFormData,
   LoginApiResponseType,
+  SelectOptionsProps,
 } from "@/@types";
 
 import { useEffect, useState } from "react";
@@ -55,33 +56,19 @@ interface ZeroBounceError {
   Message: string;
 }
 
-interface SelectOptionsProps {
-  value: string;
-  label: string;
-}
-
 export default function Home() {
   const { user, signOut, saveUser, checkExpiredToken } = useUser();
   const { saveCandidates } = useCandidates();
   const [steps, setSteps] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const [emailType, setEmailType] = useState<
-    "Work Email" | "Personal Email" | null
-  >(null);
 
   const navigator = useRouter();
-
-  const options: SelectOptionsProps[] = [
-    { value: "Work Email", label: "Work Email" },
-    { value: "Personal Email", label: "Personal Email" },
-  ];
 
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
-    setValue,
   } = useForm<CheckEmailsFormData>({
     resolver: yupResolver(checkEmailsFormSchema),
   });
@@ -98,80 +85,6 @@ export default function Home() {
     } catch (error) {
       alert(error);
     }
-  }
-
-  async function emailValidation(apiKey: string, emailsBatch: string[]) {
-    setSteps(2);
-    try {
-      const response = await validateEmail(apiKey, emailsBatch);
-
-      localStorage.setItem(
-        "@pcr-translator:zerouBounceApi",
-        JSON.stringify(apiKey)
-      );
-
-      return response;
-    } catch (error) {
-      alert(error);
-    }
-  }
-
-  async function createList(
-    userName: string,
-    description: string,
-    memo: string
-  ) {
-    setSteps(3);
-    try {
-      const response = await createRollUpList(
-        {
-          userName,
-          description,
-          memo,
-        },
-        user.SessionId
-      );
-
-      return response.RollupCode;
-    } catch (error) {
-      alert(error);
-    }
-  }
-
-  function updateCandidates(
-    candidates: any[],
-    responseZBApi: any[],
-    action: "Work Email" | "Personal Email"
-  ) {
-    const updatedCandidates = candidates.map((candidate: any) => {
-      const updatedCandidate = candidate;
-      if (action === "Work Email") {
-        const workEmailValue = candidate.Candidate.CustomFields.find(
-          (field: any) => field.FieldName === "Email_Work"
-        )?.Value;
-        if (workEmailValue) {
-          responseZBApi.forEach((item: any) => {
-            if (
-              workEmailValue.some(
-                (email: string) => email === item.emailAddress
-              )
-            ) {
-              updatedCandidate.status = item.status;
-              updatedCandidate.sub_status = item.sub_status;
-            }
-          });
-        }
-      } else {
-        responseZBApi.forEach((item: any) => {
-          if (item.emailAddress === candidate.Candidate.EmailAddress) {
-            updatedCandidate.status = item.status;
-            updatedCandidate.sub_status = item.sub_status;
-          }
-        });
-      }
-      return updatedCandidate;
-    });
-    return updatedCandidates;
   }
 
   async function handleForm(data: CheckEmailsFormData) {
@@ -196,72 +109,14 @@ export default function Home() {
       saveCandidates(candidates)
       setSteps(1);
       setIsLoading(false);
+      reset();
       navigator.push("/menu");
 
-      // let workEmailsBatch: string[] = [];
-      // candidates.forEach((candidate: any) => {
-      //   candidate.Candidate.CustomFields.forEach((field: any) => {
-      //     if (field.FieldName === "Email_Work") {
-      //       workEmailsBatch = [...workEmailsBatch, ...field.Value];
-      //     }
-      //   });
-      // });
-
-      // emailsBatch = candidates.map((candidate: CandidatesProps) => {
-      //   if (!candidate.Candidate.EmailAddress) return "";
-      //   return candidate.Candidate.EmailAddress;
-      // });
-
-      // const responseZB = await emailValidation(
-      //   data.ZBApiKey,
-      //   emailType === "Work Email" ? workEmailsBatch : emailsBatch
-      // );
-
-      // if (responseZB === undefined)
-      //   throw Error(
-      //     "No response from Zero Bounce server, please try again later"
-      //   );
-
-      // const updatedCandidates = updateCandidates(
-      //   candidates,
-      //   responseZB,
-      //   emailType!
-      // );
-      // candidates = updatedCandidates;
-
-      // const onlyCandidatesWithValidEmail = candidates.filter(
-      //   (candidate: CandidatesProps) =>
-      //     candidate.status === CheckedEmailStatusEnum.Valid
-      // );
-
-      // const rollUpCode = await createList(
-      //   user.Login,
-      //   data.description,
-      //   data.memo
-      // );
-
-      // setSteps(4);
-
-      // onlyCandidatesWithValidEmail.forEach((candidate: any) => {
-      //   insertRecordOnRollUpList(
-      //     rollUpCode,
-      //     user.SessionId,
-      //     candidate.CandidateId
-      //   );
-      // });
-
-      // setSteps(5);
-
-      // reset();
     } catch (error) {
       alert(error);
       setIsLoading(false);
     }
   }
-
-  const handleEmailTypeChange = () => {
-    setEmailType(emailType === "Work Email" ? "Personal Email" : "Work Email");
-  };
 
   useEffect(() => {
     const user = localStorage.getItem("@pcr-translator:user");
@@ -278,16 +133,6 @@ export default function Home() {
     } else {
       signOut();
       navigator.replace("/");
-    }
-  }, []);
-
-  useEffect(() => {
-    const zerobounceApi = localStorage.getItem(
-      "@pcr-translator:zerouBounceApi"
-    );
-
-    if (zerobounceApi) {
-      setValue("ZBApiKey", zerobounceApi);
     }
   }, []);
 

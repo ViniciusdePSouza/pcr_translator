@@ -20,5 +20,5 @@ export interface UtilsBarProps {
 }
 
 export interface LoadingPlaceholderProps {
-  message: string; // Define message as a string type
+  message: string;
 }
