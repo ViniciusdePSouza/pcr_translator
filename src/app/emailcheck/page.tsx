@@ -220,7 +220,7 @@ export default function EmailCheck() {
       });
       setIsLoading(false);
     } catch (error) {
-      console.log(error);
+     alert(error);
       setIsLoading(false);
     }
   }
