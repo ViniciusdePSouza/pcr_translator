@@ -5,6 +5,7 @@ import {
   Container,
   Content,
   ErrorMessage,
+  FinalFeedbackWrapper,
   Form,
   StyledSelect,
   Title,
@@ -30,7 +31,7 @@ import {
   CheckEmailsFormDataTrue,
   SelectOptionsProps,
 } from "@/@types";
-import { zeroBounceApi } from "@/services/api";
+import { LoadingPlaceholder } from "@/components/LoadingPlaceholder";
 
 const checkEmailsFormSchema = yup.object({
   description: yup.string().required(),
@@ -48,6 +49,7 @@ export default function EmailCheck() {
   const [emailType, setEmailType] = useState<
     "Work Email" | "Personal Email" | null
   >(null);
+  const [steps, setSteps] = useState(1);
 
   const { candidates, saveCandidates } = useCandidates();
   const { user } = useUser();
@@ -151,7 +153,7 @@ export default function EmailCheck() {
     memo,
   }: CheckEmailsFormDataTrue) {
     let emailsBatch: string[] = [];
-    const numberOfLoops = Math.ceil(candidates.length / 200)
+    const numberOfLoops = Math.ceil(candidates.length / 200);
     let zeroBounceApiArray: any = [];
     setIsLoading(true);
     try {
@@ -169,28 +171,25 @@ export default function EmailCheck() {
         return candidate.Candidate.EmailAddress;
       });
 
-      console.log(emailsBatch);
-
       for (let i = 0; i < numberOfLoops; i++) {
         const start = 200 * i;
         const end = Math.min(start + 200, workEmailsBatch.length);
         const workEmailsBatchSliced = workEmailsBatch.slice(start, end);
-        const emailsBatchSliced = emailsBatch.slice(start, end)
-    
+        const emailsBatchSliced = emailsBatch.slice(start, end);
+
         const responseZB = await emailValidation(
-            ZBApiKey,
-            emailType === "Work Email" ? workEmailsBatchSliced : emailsBatchSliced
+          ZBApiKey,
+          emailType === "Work Email" ? workEmailsBatchSliced : emailsBatchSliced
         );
-    
+
         if (responseZB === undefined) {
-            throw new Error(
-                "No response from Zero Bounce server, please try again later"
-            );
+          throw new Error(
+            "No response from Zero Bounce server, please try again later"
+          );
         }
-    
+
         zeroBounceApiArray = [...zeroBounceApiArray, ...responseZB];
-        console.log(zeroBounceApiArray);
-    }
+      }
 
       if (zeroBounceApiArray === undefined)
         throw Error(
@@ -209,7 +208,11 @@ export default function EmailCheck() {
           candidate.status === CheckedEmailStatusEnum.Valid
       );
 
+      setSteps(2);
+
       const rollUpCode = await createList(user.Login, description, memo);
+
+      setSteps(3);
 
       onlyCandidatesWithValidEmail.forEach((candidate: any) => {
         insertRecordOnRollUpList(
@@ -218,9 +221,10 @@ export default function EmailCheck() {
           candidate.CandidateId
         );
       });
-      setIsLoading(false);
+
+      setSteps(4);
     } catch (error) {
-     alert(error);
+      alert(error);
       setIsLoading(false);
     }
   }
@@ -234,6 +238,68 @@ export default function EmailCheck() {
       setValue("ZBApiKey", zerobounceApi);
     }
   }, []);
+
+  if (isLoading) {
+    switch (steps) {
+      case 1:
+        return (
+          <Container>
+            <Header title={"Wellcome to PCR Trasnslator !"} />
+            <Content>
+              <LoadingPlaceholder
+                message={"Checking which emails are valid..."}
+              />
+            </Content>
+          </Container>
+        );
+      case 2:
+        return (
+          <Container>
+            <Header title={"Wellcome to PCR Trasnslator !"} />
+            <Content>
+              <LoadingPlaceholder
+                message={"Creating your new valid emails list in PCR..."}
+              />
+            </Content>
+          </Container>
+        );
+      case 3:
+        return (
+          <Container>
+            <Header title={"Wellcome to PCR Trasnslator !"} />
+            <Content>
+              <LoadingPlaceholder message={"Populating your list..."} />
+            </Content>
+          </Container>
+        );
+
+      default:
+        return (
+          <Container>
+            <Header title={"Wellcome to PCR Trasnslator !"} />
+            <Content>
+              <FinalFeedbackWrapper>
+                <span>
+                  {`Awesome, everything went right!! Check your PCR System and you
+                  will see your new roll up list updated
+
+                  Ps: You might have to refresh your PCR rollup list page
+                  `}
+                </span>
+                <Button
+                  title={"Start Again"}
+                  isLoading={false}
+                  onClick={() => {
+                    setSteps(1);
+                    setIsLoading(false);
+                  }}
+                />
+              </FinalFeedbackWrapper>
+            </Content>
+          </Container>
+        );
+    }
+  }
 
   const FormComponent = () => {
     return (

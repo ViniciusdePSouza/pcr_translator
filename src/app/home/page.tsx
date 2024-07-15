@@ -147,36 +147,6 @@ export default function Home() {
             </Content>
           </Container>
         );
-      case 2:
-        return (
-          <Container>
-            <Header title={"Wellcome to PCR Trasnslator !"} />
-            <Content>
-              <LoadingPlaceholder
-                message={"Checking your candidates email..."}
-              />
-            </Content>
-          </Container>
-        );
-      case 3:
-        return (
-          <Container>
-            <Header title={"Wellcome to PCR Trasnslator !"} />
-            <Content>
-              <LoadingPlaceholder message={"Creating your rollup list..."} />
-            </Content>
-          </Container>
-        );
-      case 4:
-        return (
-          <Container>
-            <Header title={"Wellcome to PCR Trasnslator !"} />
-            <Content>
-              <LoadingPlaceholder message={"Populating your rollup list..."} />
-            </Content>
-          </Container>
-        );
-
       default:
         return (
           <Container>
@@ -216,37 +186,6 @@ export default function Home() {
           {errors.listCode && (
             <ErrorMessage>{errors.listCode.message}</ErrorMessage>
           )}
-
-          {/* <CustomInput
-            placeholder={"Your Rollup List Title"}
-            label={"Name of the New List with Verified Emails"}
-            {...register("description")}
-          />
-          {errors.description && (
-            <ErrorMessage>{errors.description.message}</ErrorMessage>
-          )}
-
-          <CustomInput
-            placeholder={"A brief description "}
-            label={"Description of the New List with Verified Emails"}
-            {...register("memo")}
-          />
-          {errors.memo && <ErrorMessage>{errors.memo.message}</ErrorMessage>}
-
-          <CustomInput
-            placeholder={""}
-            label={"Zero Bounce API Key"}
-            {...register("ZBApiKey")}
-          />
-          {errors.ZBApiKey && (
-            <ErrorMessage>{errors.ZBApiKey.message}</ErrorMessage>
-          )}
-
-          <StyledSelect
-            options={options}
-            onChange={handleEmailTypeChange}
-            value={options.find((option) => option.value === emailType)}
-          /> */}
           <Button title={"Get Started"} type="submit" isLoading={isLoading} />
         </Form>
       </>

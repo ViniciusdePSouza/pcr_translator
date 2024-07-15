@@ -81,3 +81,15 @@ export const StyledSelect = styled(Select)`
 
   font-size: 1.2rem;
 `;
+
+export const FinalFeedbackWrapper = styled.div`
+  width: 70%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  @media (min-width: 768px) {
+    width: 20%;
+  }
+`;
