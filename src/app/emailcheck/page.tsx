@@ -235,7 +235,8 @@ export default function EmailCheck() {
     );
 
     if (zerobounceApi) {
-      setValue("ZBApiKey", zerobounceApi);
+      const noQuotesApiKey = zerobounceApi.replace(/"/g, "");
+      setValue("ZBApiKey", noQuotesApiKey);
     }
   }, []);
 
