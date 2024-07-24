@@ -1,12 +1,12 @@
 import styled from "styled-components";
 
-export const Container = styled.button<{ isReady: boolean }>`
+export const Container = styled.button<{ isready: boolean }>`
   all: unset;
 
   border-radius: 8px;
   padding: 1.2rem;
-  background-color: ${({ theme, isReady }) =>
-    isReady ? theme.COLORS.PRIMARY : theme.COLORS.GRAY_200};
+  background-color: ${({ theme, isready }) =>
+    isready ? theme.COLORS.PRIMARY : theme.COLORS.GRAY_200};
 
   display: flex;
   align-items: center;
@@ -16,6 +16,6 @@ export const Container = styled.button<{ isReady: boolean }>`
   font-weight: 400;
   color: ${({ theme }) => theme.COLORS.WHITE_100};
 
-  cursor:  ${({ theme, isReady }) =>
-    isReady ? "pointer" : "not-allowed"};;
+  cursor:  ${({ theme, isready }) =>
+    isready ? "pointer" : "not-allowed"};;
 `;

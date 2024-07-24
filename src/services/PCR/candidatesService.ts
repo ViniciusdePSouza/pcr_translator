@@ -1,6 +1,8 @@
 import { CandidateFields } from "@/@types";
 import { pcrApi } from "../api";
 import { validateFields } from "@/utils/validators";
+import { AxiosError } from "axios";
+import { getAxiosErrorMessage } from "@/utils/errors";
 
 export async function getCandidates(
   sessionId: string,
@@ -34,7 +36,7 @@ export async function getCandidates(
     if (!validateFields(fieldParams)) {
       throw new Error("One or more fields are invalid");
     }
-    
+
     const response = await pcrApi.get(url, {
       headers: {
         Authorization: `Bearer ${sessionId}`,
@@ -53,4 +55,28 @@ export async function getCandidates(
   }
 }
 
+export async function updateCandidate(
+  sessionId: string,
+  body: any,
+  candidateId: number
+) {
+  const resource = `/candidatesV2/${candidateId}`;
+  
+  try {
+    const response = await pcrApi.put(resource, body, {
+      headers: {
+        Authorization: `Bearer ${sessionId}`,
+      },
+    });
+    return response;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      if (error instanceof AxiosError) {
+        getAxiosErrorMessage(error)
+      } else {
+        throw Error("An unexpected error occurred:", error);
+      }
+    }
+    }
+  }
 

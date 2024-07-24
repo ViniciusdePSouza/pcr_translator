@@ -15,7 +15,7 @@ export function MenuOptions({
   ...rest
 }: MenuOptionsProps) {
   return (
-    <Container type="button" {...rest} disabled={!isReady} isReady={isReady} onClick={onClick}>
+    <Container type="button" {...rest} disabled={!isReady} isready={isReady} onClick={onClick}>
       {title}
     </Container>
   );

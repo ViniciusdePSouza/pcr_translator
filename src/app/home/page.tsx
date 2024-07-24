@@ -42,9 +42,6 @@ import { useCandidates } from "../hooks/candidatesContext";
 
 const checkEmailsFormSchema = yup.object({
   listCode: yup.string().required(),
-  // description: yup.string().required(),
-  // memo: yup.string().required(),
-  // ZBApiKey: yup.string().required(),
 });
 
 enum CheckedEmailStatusEnum {

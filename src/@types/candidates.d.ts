@@ -33,7 +33,7 @@ export interface CandidatesProps {
 
 export interface Candidate {
   EmailAddress: string;
-  CustomFields: CustomFieldsProps;
+  CustomFields: CustomFieldsProps[];
 }
 
 export interface CustomFieldsProps {
