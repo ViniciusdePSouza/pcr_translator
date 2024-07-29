@@ -146,9 +146,13 @@ export default function LinkedinCheck() {
     }
   }
 
-  async function insertCandidates(candidates: CandidatesProps[], code: string, sessionId: string){
+  async function insertCandidates(
+    candidates: CandidatesProps[],
+    code: string,
+    sessionId: string
+  ) {
     candidates.forEach((candidate: CandidatesProps) => {
-      insertCandidateInList(candidate, code, user.SessionId)
+      insertCandidateInList(candidate, code, user.SessionId);
     });
   }
 
@@ -173,19 +177,25 @@ export default function LinkedinCheck() {
       onlyCandidatesWhichContainsLinkedin.forEach((candidate: any) => {
         candidate.Candidate.CustomFields.forEach((field: any) => {
           if (field.FieldName === "Social_LinkedIn") {
-            const linkedinArrayValues = field.Value[0]
-              .replace(/\|/g, "")
-              .split(" ")
-              .map((link: string) => normalizeLinkedinURL(link));
+            const linkedinArrayValues = field.Value.map((link: string) =>
+              normalizeLinkedinURL(link)
+            );
 
             if (linkedinArrayValues.length > 1) {
               const uniqueLinks = new Set(linkedinArrayValues);
 
               if (uniqueLinks.size !== linkedinArrayValues.length) {
-                doubledLinkedinCandidates = [
-                  ...doubledLinkedinCandidates,
-                  candidate,
-                ];
+                if (uniqueLinks.size === 1) {
+                  doubledLinkedinCandidates = [
+                    ...doubledLinkedinCandidates,
+                    candidate,
+                  ];
+                } else {
+                  differentLinkedinCandidates = [
+                    ...differentLinkedinCandidates,
+                    candidate,
+                  ];
+                }
               } else {
                 differentLinkedinCandidates = [
                   ...differentLinkedinCandidates,
@@ -197,6 +207,7 @@ export default function LinkedinCheck() {
         });
       });
 
+
       const duplicatedCandidatesListDescription =
         "This is a list of candidates which have duplicated linkedin links";
       const differentCandidatesListDescription =
@@ -205,15 +216,19 @@ export default function LinkedinCheck() {
       const rollUpCodeDifferent = await createList(
         user.Login,
         differentLinkedinListName,
-        duplicatedCandidatesListDescription
+        differentCandidatesListDescription
       );
       const rollUpCodeDoubled = await createList(
         user.Login,
         doubledLinkedinListName,
-        differentCandidatesListDescription
+        duplicatedCandidatesListDescription
       );
 
-      await insertCandidates(differentLinkedinCandidates, rollUpCodeDifferent, user.SessionId);
+      await insertCandidates(
+        differentLinkedinCandidates,
+        rollUpCodeDifferent,
+        user.SessionId
+      );
 
       if (doubledLinkedinCandidates.length === 0) {
         throw Error("no duplicated linkedin candidates");
@@ -221,9 +236,15 @@ export default function LinkedinCheck() {
 
       await updateAllCandidates(doubledLinkedinCandidates, user.SessionId);
 
-      await insertCandidates(doubledLinkedinCandidates, rollUpCodeDoubled, user.SessionId);
+      await insertCandidates(
+        doubledLinkedinCandidates,
+        rollUpCodeDoubled,
+        user.SessionId
+      );
 
-      alert("Awesome! Everything went as expected, now you can check your PCR system and see the two new rollup list that we created for you");
+      alert(
+        "Awesome! Everything went as expected, now you can check your PCR system and see the two new rollup list that we created for you"
+      );
       setIsLoading(false);
     } catch (error) {
       alert(error);
