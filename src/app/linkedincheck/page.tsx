@@ -1,5 +1,11 @@
 "use client";
-import { Container, Content, Form, Title } from "./styles";
+import {
+  Container,
+  Content,
+  FinalFeedbackWrapper,
+  Form,
+  Title,
+} from "./styles";
 
 import { Header } from "@/components/Header";
 import { Modal } from "@/components/Modal";
@@ -19,14 +25,13 @@ import {
 } from "@/services/PCR/rollupService";
 import { useUser } from "../hooks/userContext";
 import { updateCandidate } from "@/services/PCR/candidatesService";
+import { LoadingPlaceholder } from "@/components/LoadingPlaceholder";
 
 const linkedinCheckSchema = yup.object({
-  doubledLinkedinListName: yup.string().required(),
   differentLinkedinListName: yup.string().required(),
 });
 
 interface LinkedinCheckFormData {
-  doubledLinkedinListName: string;
   differentLinkedinListName: string;
 }
 
@@ -152,13 +157,12 @@ export default function LinkedinCheck() {
     sessionId: string
   ) {
     candidates.forEach((candidate: CandidatesProps) => {
-      insertCandidateInList(candidate, code, user.SessionId);
+      insertCandidateInList(candidate, code, sessionId);
     });
   }
 
   async function handleForm({
     differentLinkedinListName,
-    doubledLinkedinListName,
   }: LinkedinCheckFormData) {
     try {
       setIsLoading(true);
@@ -207,9 +211,8 @@ export default function LinkedinCheck() {
         });
       });
 
+      setSteps(2);
 
-      const duplicatedCandidatesListDescription =
-        "This is a list of candidates which have duplicated linkedin links";
       const differentCandidatesListDescription =
         "This is a list of candidates which have different linkedin links";
 
@@ -218,11 +221,6 @@ export default function LinkedinCheck() {
         differentLinkedinListName,
         differentCandidatesListDescription
       );
-      const rollUpCodeDoubled = await createList(
-        user.Login,
-        doubledLinkedinListName,
-        duplicatedCandidatesListDescription
-      );
 
       await insertCandidates(
         differentLinkedinCandidates,
@@ -230,25 +228,80 @@ export default function LinkedinCheck() {
         user.SessionId
       );
 
-      if (doubledLinkedinCandidates.length === 0) {
-        throw Error("no duplicated linkedin candidates");
-      }
+      setSteps(3);
 
       await updateAllCandidates(doubledLinkedinCandidates, user.SessionId);
 
-      await insertCandidates(
-        doubledLinkedinCandidates,
-        rollUpCodeDoubled,
-        user.SessionId
-      );
-
-      alert(
-        "Awesome! Everything went as expected, now you can check your PCR system and see the two new rollup list that we created for you"
-      );
-      setIsLoading(false);
+      setSteps(4);
     } catch (error) {
       alert(error);
       setIsLoading(false);
+    }
+  }
+
+  if (isLoading) {
+    switch (steps) {
+      case 1:
+        return (
+          <Container>
+            <Header title={"Linkedin Check !"} />
+            <Content>
+              <LoadingPlaceholder
+                message={"Filtering candidates with linkedin..."}
+              />
+            </Content>
+          </Container>
+        );
+      case 2:
+        return (
+          <Container>
+            <Header title={"Linkedin Check !"} />
+            <Content>
+              <LoadingPlaceholder
+                message={
+                  "Creating your new list in PCR with different linkedin candidates ..."
+                }
+              />
+            </Content>
+          </Container>
+        );
+      case 3:
+        return (
+          <Container>
+            <Header title={"Linkedin Check !"} />
+            <Content>
+              <LoadingPlaceholder
+                message={"Updating doubled linkedin candidates..."}
+              />
+            </Content>
+          </Container>
+        );
+
+      default:
+        return (
+          <Container>
+            <Header title={"Linkedin Check !"} />
+            <Content>
+              <FinalFeedbackWrapper>
+                <span>
+                  {`Awesome, everything went right!! 
+                  Check your PCR System and you will see your new roll up list updated
+
+                  Ps: You might have to refresh your PCR rollup list page
+                  `}
+                </span>
+                <Button
+                  title={"Start Again"}
+                  isLoading={false}
+                  onClick={() => {
+                    setSteps(1);
+                    setIsLoading(false);
+                  }}
+                />
+              </FinalFeedbackWrapper>
+            </Content>
+          </Container>
+        );
     }
   }
 
@@ -257,11 +310,6 @@ export default function LinkedinCheck() {
       <>
         <Title>Linkedin Check Form!</Title>
         <Form onSubmit={handleSubmit(handleForm)}>
-          <CustomInput
-            placeholder={"ADMIN.001"}
-            label={"Rollup List Name for doubled linkedin links"}
-            {...register("doubledLinkedinListName")}
-          />
           <CustomInput
             placeholder={"ADMIN.001"}
             label={"Rollup List Name for different linkedin links"}

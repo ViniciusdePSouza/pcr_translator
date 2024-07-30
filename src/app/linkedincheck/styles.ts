@@ -63,3 +63,15 @@ export const Title = styled.h1`
   color: ${({ theme }) => theme.COLORS.PRIMARY};
   margin-bottom: 1.8rem;
 `;
+
+export const FinalFeedbackWrapper = styled.div`
+  width: 70%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  @media (min-width: 768px) {
+    width: 20%;
+  }
+`;
