@@ -287,7 +287,7 @@ export default function LinkedinCheck() {
                   {`Awesome, everything went right!! 
                   Check your PCR System and you will see your new roll up list updated
 
-                  Ps: You might have to refresh your PCR rollup list page
+                  Ps: You might have to refresh your PCR rollup list page to see the changes
                   `}
                 </span>
                 <Button
