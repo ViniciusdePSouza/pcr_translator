@@ -75,3 +75,10 @@ export const FinalFeedbackWrapper = styled.div`
     width: 20%;
   }
 `;
+
+export const ErrorMessage = styled.span`
+  color: ${({ theme }) => theme.COLORS.RED};
+  font-size: 1.6rem;
+  font-weight: 400;
+  margin-top: 0.8rem;
+`

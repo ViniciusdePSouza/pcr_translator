@@ -2,6 +2,7 @@
 import {
   Container,
   Content,
+  ErrorMessage,
   FinalFeedbackWrapper,
   Form,
   Title,
@@ -110,9 +111,9 @@ export default function LinkedinCheck() {
     sessionId: string
   ) {
     try {
-      candidates.forEach((candidate: CandidatesProps) => {
-        updatePerson(candidate, sessionId);
-      });
+      const reqArray = candidates.map(candidate => updatePerson(candidate, sessionId))
+      await Promise.all(reqArray)
+
     } catch (error) {
       alert(error);
     }
@@ -172,12 +173,6 @@ export default function LinkedinCheck() {
       const onlyCandidatesWhichContainsLinkedin =
         filterLinkedinCandidates(candidates);
 
-      if (
-        !onlyCandidatesWhichContainsLinkedin ||
-        onlyCandidatesWhichContainsLinkedin.length == 0
-      )
-        throw new Error("No candidates with linkedin fields available");
-
       onlyCandidatesWhichContainsLinkedin.forEach((candidate: any) => {
         candidate.Candidate.CustomFields.forEach((field: any) => {
           if (field.FieldName === "Social_LinkedIn") {
@@ -233,6 +228,7 @@ export default function LinkedinCheck() {
       await updateAllCandidates(doubledLinkedinCandidates, user.SessionId);
 
       setSteps(4);
+      reset()
     } catch (error) {
       alert(error);
       setIsLoading(false);
@@ -315,6 +311,11 @@ export default function LinkedinCheck() {
             label={"Rollup List Name for different linkedin links"}
             {...register("differentLinkedinListName")}
           />
+          {errors.differentLinkedinListName && (
+            <ErrorMessage>
+              {errors.differentLinkedinListName.message}
+            </ErrorMessage>
+          )}
           <Button
             title={"Check Linkedin"}
             type="submit"
