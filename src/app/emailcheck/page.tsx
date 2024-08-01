@@ -147,6 +147,21 @@ export default function EmailCheck() {
     }
   }
 
+  async function populateValidEmailsList(
+    candidates: CandidatesProps[],
+    sessionId: string,
+    rollUpCode: string
+  ) {
+    try {
+      const reqArray = candidates.map((candidate) =>
+        insertRecordOnRollUpList(rollUpCode, sessionId, candidate.CandidateId)
+      );
+      await Promise.all(reqArray);
+    } catch (error) {
+      alert(error);
+    }
+  }
+
   async function handleForm({
     ZBApiKey,
     description,
@@ -214,13 +229,7 @@ export default function EmailCheck() {
 
       setSteps(3);
 
-      onlyCandidatesWithValidEmail.forEach((candidate: any) => {
-        insertRecordOnRollUpList(
-          rollUpCode,
-          user.SessionId,
-          candidate.CandidateId
-        );
-      });
+      await populateValidEmailsList(onlyCandidatesWithValidEmail, user.SessionId, rollUpCode)
 
       setSteps(4);
     } catch (error) {
