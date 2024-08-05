@@ -29,6 +29,7 @@ import {
 import {
   CandidatesProps,
   CheckEmailsFormDataTrue,
+  LoginApiResponseType,
   SelectOptionsProps,
 } from "@/@types";
 import { LoadingPlaceholder } from "@/components/LoadingPlaceholder";
@@ -52,7 +53,7 @@ export default function EmailCheck() {
   >(null);
   const [steps, setSteps] = useState(1);
 
-  const { user } = useUser();
+  const { user, saveUser, checkExpiredToken, signOut } = useUser();
 
   const navigator = useRouter();
 
@@ -269,6 +270,24 @@ export default function EmailCheck() {
       setIsLoading(false);
     }
   }
+
+  useEffect(() => {
+    const user = localStorage.getItem("@pcr-translator:user");
+
+    if (user) {
+      const userObj: LoginApiResponseType = JSON.parse(user);
+      saveUser(userObj);
+      const loginDate = new Date(userObj.loginDate);
+
+      if (checkExpiredToken(loginDate)) {
+        signOut();
+        navigator.replace("/");
+      }
+    } else {
+      signOut();
+      navigator.replace("/");
+    }
+  }, []);
 
   useEffect(() => {
     const zerobounceApi = localStorage.getItem(

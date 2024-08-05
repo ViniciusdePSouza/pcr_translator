@@ -15,10 +15,10 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CustomInput } from "@/components/CustomInput";
 import { Button } from "@/components/Button";
-import { CandidatesProps } from "@/@types";
+import { CandidatesProps, LoginApiResponseType } from "@/@types";
 import {
   createRollUpList,
   getRollUpListsRecords,
@@ -43,8 +43,7 @@ export default function LinkedinCheck() {
   const [steps, setSteps] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
 
-  // const { candidates } = useCandidates();
-  const { user } = useUser();
+  const { user, saveUser, checkExpiredToken, signOut } = useUser();
   const navigator = useRouter();
 
   const {
@@ -271,6 +270,24 @@ export default function LinkedinCheck() {
     }
   }
 
+  useEffect(() => {
+    const user = localStorage.getItem("@pcr-translator:user");
+
+    if (user) {
+      const userObj: LoginApiResponseType = JSON.parse(user);
+      saveUser(userObj);
+      const loginDate = new Date(userObj.loginDate);
+
+      if (checkExpiredToken(loginDate)) {
+        signOut();
+        navigator.replace("/");
+      }
+    } else {
+      signOut();
+      navigator.replace("/");
+    }
+  }, []);
+
   if (isLoading) {
     switch (steps) {
       case 1:
@@ -399,3 +416,7 @@ export default function LinkedinCheck() {
     </Container>
   );
 }
+function checkExpiredToken(loginDate: Date) {
+  throw new Error("Function not implemented.");
+}
+
