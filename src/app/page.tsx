@@ -94,7 +94,7 @@ export default function Home() {
       const userObj: LoginApiResponseType = JSON.parse(user);
       const loginDate = new Date(userObj.loginDate);
       
-      if(!checkExpiredToken(loginDate)) router.push("/home");
+      if(!checkExpiredToken(loginDate)) router.push("/menu");
     }
   }, [])
 
