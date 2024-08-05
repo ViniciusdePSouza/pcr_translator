@@ -63,7 +63,7 @@ export default function Home() {
       savePcrLoginInfo(data);
 
       if (response?.SessionId) {
-        router.push("/home");
+        router.push("/menu");
       }
     } catch (error) {
       alert(error);

@@ -19,11 +19,11 @@ import * as yup from "yup";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/Button";
-import { useCandidates } from "../hooks/candidatesContext";
 import { validateEmail } from "@/services/ZeroBounce/emailService";
 import { useUser } from "../hooks/userContext";
 import {
   createRollUpList,
+  getRollUpListsRecords,
   insertRecordOnRollUpList,
 } from "@/services/PCR/rollupService";
 import {
@@ -34,6 +34,7 @@ import {
 import { LoadingPlaceholder } from "@/components/LoadingPlaceholder";
 
 const checkEmailsFormSchema = yup.object({
+  targetListCode: yup.string().required(),
   description: yup.string().required(),
   memo: yup.string().required(),
   ZBApiKey: yup.string().required(),
@@ -51,7 +52,6 @@ export default function EmailCheck() {
   >(null);
   const [steps, setSteps] = useState(1);
 
-  const { candidates, saveCandidates } = useCandidates();
   const { user } = useUser();
 
   const navigator = useRouter();
@@ -162,16 +162,48 @@ export default function EmailCheck() {
     }
   }
 
+  async function fetchRecords(
+    listCode: string,
+    fields: string[],
+    sessionId: string
+  ) {
+    try {
+      const response = await getRollUpListsRecords(listCode, fields, sessionId);
+
+      return response!.data;
+    } catch (error: any) {    
+      alert(error);
+    }
+  }
+
   async function handleForm({
     ZBApiKey,
     description,
     memo,
+    targetListCode
   }: CheckEmailsFormDataTrue) {
-    let emailsBatch: string[] = [];
-    const numberOfLoops = Math.ceil(candidates.length / 200);
-    let zeroBounceApiArray: any = [];
     setIsLoading(true);
     try {
+      const response = await fetchRecords(
+        targetListCode,
+        ["Candidate.EmailAddress", "CandidateId", "Candidate.CustomFields"],
+        user.SessionId
+      );
+
+      const candidates = response.Results.map((candidate: CandidatesProps) => {
+        return {
+          ...candidate,
+          status: "",
+          sub_status: "",
+        };
+      });
+
+      setSteps(2)
+
+      let emailsBatch: string[] = [];
+      const numberOfLoops = Math.ceil(candidates.length / 200);
+      let zeroBounceApiArray: any = [];
+
       let workEmailsBatch: string[] = [];
       candidates.forEach((candidate: any) => {
         candidate.Candidate.CustomFields.forEach((field: any) => {
@@ -216,23 +248,23 @@ export default function EmailCheck() {
         zeroBounceApiArray,
         emailType!
       );
-      saveCandidates(updatedCandidates);
 
       const onlyCandidatesWithValidEmail = updatedCandidates.filter(
         (candidate: CandidatesProps) =>
           candidate.status === CheckedEmailStatusEnum.Valid
       );
 
-      setSteps(2);
+      setSteps(3);
 
       const rollUpCode = await createList(user.Login, description, memo);
 
-      setSteps(3);
+      setSteps(4);
 
       await populateValidEmailsList(onlyCandidatesWithValidEmail, user.SessionId, rollUpCode)
 
-      setSteps(4);
-    } catch (error) {
+      setSteps(5);
+      reset()
+    } catch (error: any) {
       alert(error);
       setIsLoading(false);
     }
@@ -257,7 +289,7 @@ export default function EmailCheck() {
             <Header title={"Wellcome to PCR Trasnslator !"} />
             <Content>
               <LoadingPlaceholder
-                message={"Checking which emails are valid..."}
+                message={"Fetching candidates from PCR list..."}
               />
             </Content>
           </Container>
@@ -268,12 +300,23 @@ export default function EmailCheck() {
             <Header title={"Wellcome to PCR Trasnslator !"} />
             <Content>
               <LoadingPlaceholder
-                message={"Creating your new valid emails list in PCR..."}
+                message={"Checking which emails are valid..."}
               />
             </Content>
           </Container>
         );
       case 3:
+        return (
+          <Container>
+            <Header title={"Wellcome to PCR Trasnslator !"} />
+            <Content>
+              <LoadingPlaceholder
+                message={"Creating your new valid emails list in PCR..."}
+              />
+            </Content>
+          </Container>
+        );
+      case 4:
         return (
           <Container>
             <Header title={"Wellcome to PCR Trasnslator !"} />
@@ -304,6 +347,13 @@ export default function EmailCheck() {
                     setIsLoading(false);
                   }}
                 />
+                 <Button
+                  title={"Go to menu"}
+                  isLoading={false}
+                  onClick={() => {
+                    navigator.back()
+                  }}
+                />
               </FinalFeedbackWrapper>
             </Content>
           </Container>
@@ -316,6 +366,14 @@ export default function EmailCheck() {
       <>
         <Title>Email Checking</Title>
         <Form onSubmit={handleSubmit(handleForm)}>
+        <CustomInput
+            placeholder={"Target List Code"}
+            label={"Target List Code"}
+            {...register("targetListCode")}
+          />
+          {errors.targetListCode && (
+            <ErrorMessage>{errors.targetListCode.message}</ErrorMessage>
+          )}
           <CustomInput
             placeholder={"Your Rollup List Title"}
             label={"Name of the New List with Verified Emails"}

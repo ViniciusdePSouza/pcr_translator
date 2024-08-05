@@ -18,21 +18,24 @@ import * as yup from "yup";
 import { useState } from "react";
 import { CustomInput } from "@/components/CustomInput";
 import { Button } from "@/components/Button";
-import { useCandidates } from "../hooks/candidatesContext";
 import { CandidatesProps } from "@/@types";
 import {
   createRollUpList,
+  getRollUpListsRecords,
   insertRecordOnRollUpList,
 } from "@/services/PCR/rollupService";
 import { useUser } from "../hooks/userContext";
 import { updateCandidate } from "@/services/PCR/candidatesService";
 import { LoadingPlaceholder } from "@/components/LoadingPlaceholder";
+import { useRouter } from "next/navigation";
 
 const linkedinCheckSchema = yup.object({
+  targetListCode: yup.string().required(),
   differentLinkedinListName: yup.string().required(),
 });
 
 interface LinkedinCheckFormData {
+  targetListCode: string;
   differentLinkedinListName: string;
 }
 
@@ -40,8 +43,9 @@ export default function LinkedinCheck() {
   const [steps, setSteps] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { candidates } = useCandidates();
+  // const { candidates } = useCandidates();
   const { user } = useUser();
+  const navigator = useRouter();
 
   const {
     register,
@@ -162,11 +166,43 @@ export default function LinkedinCheck() {
     });
   }
 
+  async function fetchRecords(
+    listCode: string,
+    fields: string[],
+    sessionId: string
+  ) {
+    try {
+      const response = await getRollUpListsRecords(listCode, fields, sessionId);
+
+      return response!.data;
+    } catch (error: any) {    
+      alert(error);
+    }
+  }
+
   async function handleForm({
+    targetListCode,
     differentLinkedinListName,
   }: LinkedinCheckFormData) {
     try {
       setIsLoading(true);
+
+      const response = await fetchRecords(
+        targetListCode,
+        ["Candidate.EmailAddress", "CandidateId", "Candidate.CustomFields"],
+        user.SessionId
+      );
+
+      const candidates = response.Results.map((candidate: CandidatesProps) => {
+        return {
+          ...candidate,
+          status: "",
+          sub_status: "",
+        };
+      });
+
+      setSteps(2)
+
       let doubledLinkedinCandidates: CandidatesProps[] = [];
       let differentLinkedinCandidates: CandidatesProps[] = [];
 
@@ -206,7 +242,7 @@ export default function LinkedinCheck() {
         });
       });
 
-      setSteps(2);
+      setSteps(3);
 
       const differentCandidatesListDescription =
         "This is a list of candidates which have different linkedin links";
@@ -223,11 +259,11 @@ export default function LinkedinCheck() {
         user.SessionId
       );
 
-      setSteps(3);
+      setSteps(4);
 
       await updateAllCandidates(doubledLinkedinCandidates, user.SessionId);
 
-      setSteps(4);
+      setSteps(5);
       reset()
     } catch (error) {
       alert(error);
@@ -240,6 +276,17 @@ export default function LinkedinCheck() {
       case 1:
         return (
           <Container>
+            <Header title={"Wellcome to PCR Trasnslator !"} />
+            <Content>
+              <LoadingPlaceholder
+                message={"Fetching candidates from PCR list..."}
+              />
+            </Content>
+          </Container>
+        );
+      case 2:
+        return (
+          <Container>
             <Header title={"Linkedin Check !"} />
             <Content>
               <LoadingPlaceholder
@@ -248,7 +295,7 @@ export default function LinkedinCheck() {
             </Content>
           </Container>
         );
-      case 2:
+      case 3:
         return (
           <Container>
             <Header title={"Linkedin Check !"} />
@@ -261,7 +308,7 @@ export default function LinkedinCheck() {
             </Content>
           </Container>
         );
-      case 3:
+      case 4:
         return (
           <Container>
             <Header title={"Linkedin Check !"} />
@@ -294,6 +341,13 @@ export default function LinkedinCheck() {
                     setIsLoading(false);
                   }}
                 />
+                <Button
+                  title={"Go to menu"}
+                  isLoading={false}
+                  onClick={() => {
+                    navigator.back()
+                  }}
+                />
               </FinalFeedbackWrapper>
             </Content>
           </Container>
@@ -306,6 +360,16 @@ export default function LinkedinCheck() {
       <>
         <Title>Linkedin Check Form!</Title>
         <Form onSubmit={handleSubmit(handleForm)}>
+        <CustomInput
+            placeholder={"USER.001"}
+            label={"Target List Code"}
+            {...register("targetListCode")}
+          />
+          {errors.differentLinkedinListName && (
+            <ErrorMessage>
+              {errors.differentLinkedinListName.message}
+            </ErrorMessage>
+          )}
           <CustomInput
             placeholder={"ADMIN.001"}
             label={"Rollup List Name for different linkedin links"}

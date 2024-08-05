@@ -16,6 +16,7 @@ export  interface SelectOptionsProps {
 }
 
 export interface CheckEmailsFormDataTrue {
+  targetListCode: string;
   description: string;
   memo: string;
   ZBApiKey: string;
