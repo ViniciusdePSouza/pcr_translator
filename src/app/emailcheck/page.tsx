@@ -10,29 +10,33 @@ import {
   StyledSelect,
   Title,
 } from "./styles";
+
 import { Modal } from "@/components/Modal";
 import { CustomInput } from "@/components/CustomInput";
+import { Button } from "@/components/Button";
+import { LoadingPlaceholder } from "@/components/LoadingPlaceholder";
 
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
+
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/Button";
-import { validateEmail } from "@/services/ZeroBounce/emailService";
 import { useUser } from "../hooks/userContext";
+
+import { validateEmail } from "@/services/ZeroBounce/emailService";
 import {
   createRollUpList,
   getRollUpListsRecords,
   insertRecordOnRollUpList,
 } from "@/services/PCR/rollupService";
+
 import {
   CandidatesProps,
   CheckEmailsFormDataTrue,
   LoginApiResponseType,
   SelectOptionsProps,
 } from "@/@types";
-import { LoadingPlaceholder } from "@/components/LoadingPlaceholder";
 
 const checkEmailsFormSchema = yup.object({
   targetListCode: yup.string().required(),
@@ -172,7 +176,7 @@ export default function EmailCheck() {
       const response = await getRollUpListsRecords(listCode, fields, sessionId);
 
       return response!.data;
-    } catch (error: any) {    
+    } catch (error: any) {
       alert(error);
     }
   }
@@ -181,7 +185,7 @@ export default function EmailCheck() {
     ZBApiKey,
     description,
     memo,
-    targetListCode
+    targetListCode,
   }: CheckEmailsFormDataTrue) {
     setIsLoading(true);
     try {
@@ -199,7 +203,7 @@ export default function EmailCheck() {
         };
       });
 
-      setSteps(2)
+      setSteps(2);
 
       let emailsBatch: string[] = [];
       const numberOfLoops = Math.ceil(candidates.length / 200);
@@ -213,30 +217,47 @@ export default function EmailCheck() {
           }
         });
       });
-
       emailsBatch = candidates.map((candidate: CandidatesProps) => {
-        if (!candidate.Candidate.EmailAddress) return "";
+        if (!candidate.Candidate.EmailAddress) {
+          return "";
+        }
         return candidate.Candidate.EmailAddress;
       });
 
-      for (let i = 0; i < numberOfLoops; i++) {
-        const start = 200 * i;
-        const end = Math.min(start + 200, workEmailsBatch.length);
-        const workEmailsBatchSliced = workEmailsBatch.slice(start, end);
-        const emailsBatchSliced = emailsBatch.slice(start, end);
+      if (numberOfLoops > 1) {
+        for (let i = 0; i < numberOfLoops; i++) {
+          const start = 200 * i;
+          const end = Math.min(start + 200, workEmailsBatch.length);
+          const workEmailsBatchSliced = workEmailsBatch.slice(start, end);
+          const emailsBatchSliced = emailsBatch.slice(start, end);
 
-        const responseZB = await emailValidation(
-          ZBApiKey,
-          emailType === "Work Email" ? workEmailsBatchSliced : emailsBatchSliced
-        );
+          console.log(workEmailsBatchSliced)
+          console.log(emailsBatchSliced)
 
-        if (responseZB === undefined) {
-          throw new Error(
-            "No response from Zero Bounce server, please try again later"
+          const responseZB = await emailValidation(
+            ZBApiKey,
+            emailType === "Work Email"
+              ? workEmailsBatchSliced
+              : emailsBatchSliced
           );
-        }
 
-        zeroBounceApiArray = [...zeroBounceApiArray, ...responseZB];
+          if (responseZB === undefined) {
+            throw new Error(
+              "No response from Zero Bounce server, please try again later"
+            );
+          }
+
+          zeroBounceApiArray = [...zeroBounceApiArray, ...responseZB];
+        }
+      } else {
+        console.log(workEmailsBatch)
+        console.log(emailsBatch)
+        zeroBounceApiArray =  await emailValidation(
+          ZBApiKey,
+          emailType === "Work Email"
+            ? workEmailsBatch
+            : emailsBatch
+        );
       }
 
       if (zeroBounceApiArray === undefined)
@@ -261,10 +282,14 @@ export default function EmailCheck() {
 
       setSteps(4);
 
-      await populateValidEmailsList(onlyCandidatesWithValidEmail, user.SessionId, rollUpCode)
+      await populateValidEmailsList(
+        onlyCandidatesWithValidEmail,
+        user.SessionId,
+        rollUpCode
+      );
 
       setSteps(5);
-      reset()
+      reset();
     } catch (error: any) {
       alert(error);
       setIsLoading(false);
@@ -366,11 +391,11 @@ export default function EmailCheck() {
                     setIsLoading(false);
                   }}
                 />
-                 <Button
+                <Button
                   title={"Go to menu"}
                   isLoading={false}
                   onClick={() => {
-                    navigator.back()
+                    navigator.back();
                   }}
                 />
               </FinalFeedbackWrapper>
@@ -385,7 +410,7 @@ export default function EmailCheck() {
       <>
         <Title>Email Checking</Title>
         <Form onSubmit={handleSubmit(handleForm)}>
-        <CustomInput
+          <CustomInput
             placeholder={"Target List Code"}
             label={"Target List Code"}
             {...register("targetListCode")}

@@ -51,6 +51,11 @@ export default function Menu() {
             title={"Linkedin Check"}
             onClick={() => navigateToDestinyRoute("/linkedincheck")}
           />
+          <MenuOptions
+            isReady={false}
+            title={"Correct Names"}
+            onClick={() => navigateToDestinyRoute("/namescorrection")}
+          />
         </MenuWrapper>
       </>
     );
