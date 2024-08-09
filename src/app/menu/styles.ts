@@ -48,5 +48,5 @@ export const MenuTitle = styled.h1`
   justify-content: center;
   text-align: center;
 
-  margin-bottom: .8rem;
+  margin-bottom: 2.4rem
   `

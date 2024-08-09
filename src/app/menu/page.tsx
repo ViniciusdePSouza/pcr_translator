@@ -38,22 +38,22 @@ export default function Menu() {
   const MenuComponent = () => {
     return (
       <>
-        <MenuTitle>Choose you action</MenuTitle>
+        <MenuTitle>Maintenance Options</MenuTitle>
         <MenuWrapper>
           <MenuOptions
-            isReady={true}
-            title={"Email Check"}
+            isReady
+            title={"ZeroBounce Email Verification"}
             onClick={() => navigateToDestinyRoute("/emailcheck")}
           />
 
           <MenuOptions
-            isReady={true}
-            title={"Linkedin Check"}
+            isReady
+            title={"Linkedin Link Duplication Check"}
             onClick={() => navigateToDestinyRoute("/linkedincheck")}
           />
           <MenuOptions
-            isReady={false}
-            title={"Correct Names"}
+            isReady
+            title={"Normalize First and Last Name"}
             onClick={() => navigateToDestinyRoute("/namescorrection")}
           />
         </MenuWrapper>

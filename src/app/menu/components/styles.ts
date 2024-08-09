@@ -11,6 +11,8 @@ export const Container = styled.button<{ isready: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
+  text-align: center;
+  line-height: 2.4rem;
 
   font-size: 1.6rem;
   font-weight: 400;

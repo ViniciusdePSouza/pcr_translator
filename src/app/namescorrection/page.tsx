@@ -12,7 +12,7 @@ import {
   Title,
 } from "./style";
 import { useEffect, useState } from "react";
-import { LoginApiResponseType } from "@/@types";
+import { CandidatesProps, LoginApiResponseType } from "@/@types";
 import { useUser } from "../hooks/userContext";
 import { useRouter } from "next/navigation";
 import { LoadingPlaceholder } from "@/components/LoadingPlaceholder";
@@ -21,6 +21,8 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { CustomInput } from "@/components/CustomInput";
+import { getRollUpListsRecords } from "@/services/PCR/rollupService";
+import { updateCandidate } from "@/services/PCR/candidatesService";
 
 interface CorrectNamesFormData {
   targetListCode: string;
@@ -42,7 +44,7 @@ export default function NamesCorrection() {
     "First Name" | "Last Name" | "Both" | null
   >(null);
 
-  const { checkExpiredToken, saveUser, signOut } = useUser();
+  const { checkExpiredToken, saveUser, signOut, user } = useUser();
   const navigator = useRouter();
 
   const options = [
@@ -64,13 +66,165 @@ export default function NamesCorrection() {
     setNameOption(selectedOption ? selectedOption.value : null);
   };
 
-  async function handleForm({ targetListCode }: CorrectNamesFormData) {
-    const data = {
-      code: targetListCode,
-      name: nameOption,
-    };
+  function capitalizeName(name: string) {
+    return name && name[0].toUpperCase() + name.slice(1).toLowerCase();
+  }
 
-    console.log(data);
+  function excludeEverythingAfterComma(name: string) {
+    return name.split(",")[0];
+  }
+
+  function formatName(name: string) {
+    name = excludeEverythingAfterComma(name);
+    name = capitalizeName(name);
+
+    return name;
+  }
+
+  async function fetchRecords(
+    listCode: string,
+    fields: string[],
+    sessionId: string
+  ) {
+    try {
+      const response = await getRollUpListsRecords(listCode, fields, "sessionId");
+
+      return response!.data.Results;
+    } catch (error: any) {
+      setIsLoading(false);
+      alert(error);
+    }
+  }
+
+  async function updateAllCandidates(
+    candidates: CandidatesProps[],
+    sessionId: string,
+    action: "First Name" | "Last Name" | "Both"
+  ) {
+    try {
+      const reqArray = candidates.map((candidate) =>
+        updatePerson(candidate, sessionId, action)
+      );
+      await Promise.all(reqArray);
+    } catch (error) {
+      setIsLoading(false);
+      alert(error);
+    }
+  }
+
+  async function updatePerson(
+    candidate: CandidatesProps,
+    sessionId: string,
+    action: "First Name" | "Last Name" | "Both"
+  ) {
+    let body = {};
+
+    switch (action) {
+      case "First Name":
+        body = {
+          FirstName: candidate.Candidate.FirstName,
+        };
+        break;
+      case "Last Name":
+        body = {
+          LastName: candidate.Candidate.LastName,
+        };
+        break;
+      case "Both":
+        body = {
+          FirstName: candidate.Candidate.FirstName,
+          LastName: candidate.Candidate.LastName,
+        };
+        break;
+      default:
+        return;
+    }
+
+    try {
+      const response = await updateCandidate(
+        sessionId,
+        body,
+        candidate.CandidateId
+      );
+
+      return response;
+    } catch (error) {
+      setIsLoading(false);
+      alert(error);
+    }
+  }
+
+  async function handleForm({ targetListCode }: CorrectNamesFormData) {
+    setIsLoading(true);
+    try {
+      let fieldsArray = [];
+
+      switch (nameOption) {
+        case "First Name":
+          fieldsArray = ["Candidate.FirstName", "CandidateId"];
+          break;
+        case "Last Name":
+          fieldsArray = ["Candidate.LastName", "CandidateId"];
+          break;
+        case "Both":
+          fieldsArray = [
+            "Candidate.FirstName",
+            "CandidateId",
+            "Candidate.LastName",
+          ];
+          break;
+        default:
+          return;
+      }
+
+      const response = await fetchRecords(
+        targetListCode,
+        fieldsArray,
+        user.SessionId
+      );
+
+      setSteps(2);
+
+      const correctedCandidates = response.map((candidate: CandidatesProps) => {
+        switch (nameOption) {
+          case "First Name":
+            candidate.Candidate.FirstName = formatName(
+              candidate.Candidate.FirstName!
+            );
+            break;
+          case "Last Name":
+            candidate.Candidate.LastName = formatName(
+              candidate.Candidate.LastName!
+            );
+            break;
+          case "Both":
+            candidate.Candidate.FirstName = formatName(
+              candidate.Candidate.FirstName!
+            );
+            candidate.Candidate.LastName = formatName(
+              candidate.Candidate.LastName!
+            );
+            break;
+          default:
+            return;
+        }
+
+        return candidate;
+      });
+
+      setSteps(3);
+
+      await updateAllCandidates(
+        correctedCandidates,
+        user.SessionId,
+        nameOption
+      );
+
+      setSteps(4);
+    } catch (error) {
+      setIsLoading(false);
+      alert(error);
+    }
   }
 
   useEffect(() => {
@@ -109,9 +263,16 @@ export default function NamesCorrection() {
           <Container>
             <Header title={"Linkedin Check !"} />
             <Content>
-              <LoadingPlaceholder
-                message={"Correcting the names and uploading profiles..."}
-              />
+              <LoadingPlaceholder message={"Correcting the names..."} />
+            </Content>
+          </Container>
+        );
+      case 3:
+        return (
+          <Container>
+            <Header title={"Linkedin Check !"} />
+            <Content>
+              <LoadingPlaceholder message={"Uploading profiles..."} />
             </Content>
           </Container>
         );

@@ -125,7 +125,7 @@ export default function LinkedinCheck() {
   async function updatePerson(candidate: CandidatesProps, sessionId: string) {
     const customFields = candidate.Candidate.CustomFields;
 
-    const linkedInField = customFields.find(
+    const linkedInField = customFields!.find(
       (field) => field.FieldName === "Social_LinkedIn"
     );
 

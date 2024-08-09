@@ -32,8 +32,10 @@ export interface CandidatesProps {
 }
 
 export interface Candidate {
-  EmailAddress: string;
-  CustomFields: CustomFieldsProps[];
+  EmailAddress?: string;
+  CustomFields?: CustomFieldsProps[];
+  FirstName?: string;
+  LastName?: string;
 }
 
 export interface CustomFieldsProps {
