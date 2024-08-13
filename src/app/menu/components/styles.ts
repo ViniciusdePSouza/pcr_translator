@@ -18,6 +18,6 @@ export const Container = styled.button<{ isready: boolean }>`
   font-weight: 400;
   color: ${({ theme }) => theme.COLORS.WHITE_100};
 
-  cursor:  ${({ theme, isready }) =>
+  cursor:  ${({ isready }) =>
     isready ? "pointer" : "not-allowed"};;
 `;

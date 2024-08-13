@@ -37,8 +37,13 @@ export const Container = styled.div`
 export const MenuWrapper = styled.div`
   width: 100%;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 0.8rem;
+
+  @media (max-width: 1025px) {
+    display: flex;
+    flex-direction: column;
+  }
 `;
 
 export const MenuTitle = styled.h1`

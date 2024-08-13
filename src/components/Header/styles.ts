@@ -31,4 +31,9 @@ export const ButtonWrapper = styled.div`
   gap: 3.2rem;
 
   margin-left: 2.4rem;
+
+  @media (max-width: 1025px) {
+    margin-left: 4rem;
+  }
+
 `;
