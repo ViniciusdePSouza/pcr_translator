@@ -87,7 +87,7 @@ export default function NamesCorrection() {
     sessionId: string
   ) {
     try {
-      const response = await getRollUpListsRecords(listCode, fields, "sessionId");
+      const response = await getRollUpListsRecords(listCode, fields, sessionId);
 
       return response!.data.Results;
     } catch (error: any) {
