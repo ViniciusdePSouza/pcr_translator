@@ -22,7 +22,6 @@ export const Container = styled.header`
 
 export const ButtonWrapper = styled.div`
   position: absolute;
-  width: 7%;
   bottom: 0%;
   left: 0%;
   display: flex;
@@ -33,7 +32,6 @@ export const ButtonWrapper = styled.div`
   margin-left: 2.4rem;
 
   @media (max-width: 1025px) {
-    margin-left: 4rem;
+    margin-left: 1.2rem;
   }
-
 `;
