@@ -56,6 +56,11 @@ export default function Menu() {
             title={"Normalize First and Last Name"}
             onClick={() => navigateToDestinyRoute("/namescorrection")}
           />
+          <MenuOptions
+            isReady
+            title={"Filter Emails Domains "}
+            onClick={() => navigateToDestinyRoute("/emaildomaincheck")}
+          />
         </MenuWrapper>
       </>
     );
