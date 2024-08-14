@@ -4,7 +4,6 @@ import Select from "react-select"
 
 export const Content = styled.div`
   width: 100%;
-  padding: 2.4rem 1.2rem;
   min-height: 100vh;
 
   display: flex;
@@ -80,16 +79,20 @@ export const StyledSelect = styled(Select)`
   align-self: flex-start;
 
   font-size: 1.2rem;
+
+  @media (max-width: 1025px) {
+    width: 100%;
+  }
 `;
 
 export const FinalFeedbackWrapper = styled.div`
-  width: 70%;
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
 
   @media (min-width: 768px) {
-    width: 20%;
+    width: 50%;
   }
 `;

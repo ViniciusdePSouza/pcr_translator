@@ -27,7 +27,6 @@ import { useUser } from "../hooks/userContext";
 import { validateEmail } from "@/services/ZeroBounce/emailService";
 import {
   createRollUpList,
-  getRollUpListsRecords,
   insertRecordOnRollUpList,
 } from "@/services/PCR/rollupService";
 
@@ -37,6 +36,7 @@ import {
   LoginApiResponseType,
   SelectOptionsProps,
 } from "@/@types";
+
 import { fetchPcrRecords } from "@/utils/apiTools";
 
 const checkEmailsFormSchema = yup.object({

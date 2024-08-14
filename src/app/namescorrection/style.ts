@@ -83,6 +83,10 @@ export const StyledSelect = styled(Select)`
   align-self: flex-start;
 
   font-size: 1.2rem;
+
+  @media (max-width: 1025px) {
+    width: 100%;
+  }
 `;
 
 export const ErrorMessage = styled.span`
