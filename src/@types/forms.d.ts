@@ -21,3 +21,7 @@ export interface CheckEmailsFormDataTrue {
   memo: string;
   ZBApiKey: string;
 }
+
+export interface CorrectNamesFormData {
+  targetListCode: string;
+}

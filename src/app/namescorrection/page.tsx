@@ -1,7 +1,6 @@
 "use client";
+import { CandidatesProps, CorrectNamesFormData, LoginApiResponseType } from "@/@types";
 
-import { Header } from "@/components/Header";
-import { Modal } from "@/components/Modal";
 import {
   Container,
   Content,
@@ -11,23 +10,24 @@ import {
   StyledSelect,
   Title,
 } from "./style";
+
 import { useEffect, useState } from "react";
-import { CandidatesProps, LoginApiResponseType } from "@/@types";
-import { useUser } from "../hooks/userContext";
 import { useRouter } from "next/navigation";
+
+import { Header } from "@/components/Header";
+import { Modal } from "@/components/Modal";
+import { CustomInput } from "@/components/CustomInput";
 import { LoadingPlaceholder } from "@/components/LoadingPlaceholder";
 import { Button } from "@/components/Button";
+
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { CustomInput } from "@/components/CustomInput";
-import { getRollUpListsRecords } from "@/services/PCR/rollupService";
+
 import { updateCandidate } from "@/services/PCR/candidatesService";
 import { fetchPcrRecords } from "@/utils/apiTools";
 
-interface CorrectNamesFormData {
-  targetListCode: string;
-}
+import { useUser } from "../hooks/userContext";
 
 interface SelectOptionProps {
   value: "First Name" | "Last Name" | "Both";
