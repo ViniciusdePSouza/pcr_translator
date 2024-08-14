@@ -11,7 +11,7 @@ import { useEffect } from "react";
 
 export default function Menu() {
   const navigator = useRouter();
-  const { user, saveUser, checkExpiredToken, signOut } = useUser();
+  const { saveUser, checkExpiredToken, signOut } = useUser();
 
   function navigateToDestinyRoute(route: string) {
     navigator.push(route);

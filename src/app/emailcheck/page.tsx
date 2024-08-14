@@ -37,6 +37,7 @@ import {
   LoginApiResponseType,
   SelectOptionsProps,
 } from "@/@types";
+import { fetchPcrRecords } from "@/utils/apiTools";
 
 const checkEmailsFormSchema = yup.object({
   targetListCode: yup.string().required(),
@@ -167,20 +168,6 @@ export default function EmailCheck() {
     }
   }
 
-  async function fetchRecords(
-    listCode: string,
-    fields: string[],
-    sessionId: string
-  ) {
-    try {
-      const response = await getRollUpListsRecords(listCode, fields, sessionId);
-
-      return response!.data;
-    } catch (error: any) {
-      alert(error);
-    }
-  }
-
   async function handleForm({
     ZBApiKey,
     description,
@@ -189,7 +176,7 @@ export default function EmailCheck() {
   }: CheckEmailsFormDataTrue) {
     setIsLoading(true);
     try {
-      const response = await fetchRecords(
+      const response = await fetchPcrRecords(
         targetListCode,
         ["Candidate.EmailAddress", "CandidateId", "Candidate.CustomFields"],
         user.SessionId

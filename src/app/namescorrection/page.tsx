@@ -23,6 +23,7 @@ import * as yup from "yup";
 import { CustomInput } from "@/components/CustomInput";
 import { getRollUpListsRecords } from "@/services/PCR/rollupService";
 import { updateCandidate } from "@/services/PCR/candidatesService";
+import { fetchPcrRecords } from "@/utils/apiTools";
 
 interface CorrectNamesFormData {
   targetListCode: string;
@@ -79,21 +80,6 @@ export default function NamesCorrection() {
     name = capitalizeName(name);
 
     return name;
-  }
-
-  async function fetchRecords(
-    listCode: string,
-    fields: string[],
-    sessionId: string
-  ) {
-    try {
-      const response = await getRollUpListsRecords(listCode, fields, sessionId);
-
-      return response!.data.Results;
-    } catch (error: any) {
-      setIsLoading(false);
-      alert(error);
-    }
   }
 
   async function updateAllCandidates(
@@ -177,7 +163,7 @@ export default function NamesCorrection() {
           return;
       }
 
-      const response = await fetchRecords(
+      const response = await fetchPcrRecords(
         targetListCode,
         fieldsArray,
         user.SessionId
@@ -185,7 +171,7 @@ export default function NamesCorrection() {
 
       setSteps(2);
 
-      const correctedCandidates = response.map((candidate: CandidatesProps) => {
+      const correctedCandidates = response.Results.map((candidate: CandidatesProps) => {
         switch (nameOption) {
           case "First Name":
             candidate.Candidate.FirstName = formatName(

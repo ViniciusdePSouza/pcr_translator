@@ -28,6 +28,7 @@ import { useUser } from "../hooks/userContext";
 import { updateCandidate } from "@/services/PCR/candidatesService";
 import { LoadingPlaceholder } from "@/components/LoadingPlaceholder";
 import { useRouter } from "next/navigation";
+import { fetchPcrRecords } from "@/utils/apiTools";
 
 const linkedinCheckSchema = yup.object({
   targetListCode: yup.string().required(),
@@ -165,20 +166,6 @@ export default function LinkedinCheck() {
     });
   }
 
-  async function fetchRecords(
-    listCode: string,
-    fields: string[],
-    sessionId: string
-  ) {
-    try {
-      const response = await getRollUpListsRecords(listCode, fields, sessionId);
-
-      return response!.data;
-    } catch (error: any) {    
-      alert(error);
-    }
-  }
-
   async function handleForm({
     targetListCode,
     differentLinkedinListName,
@@ -186,7 +173,7 @@ export default function LinkedinCheck() {
     try {
       setIsLoading(true);
 
-      const response = await fetchRecords(
+      const response = await fetchPcrRecords(
         targetListCode,
         ["Candidate.EmailAddress", "CandidateId", "Candidate.CustomFields"],
         user.SessionId
