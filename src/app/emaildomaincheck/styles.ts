@@ -1,5 +1,7 @@
 import { styled } from "styled-components";
 
+import Select from "react-select"
+
 export const Content = styled.div`
   width: 100%;
   padding: 2.4rem 1.2rem;
@@ -80,4 +82,16 @@ export const ErrorMessage = styled.span`
   font-size: 16px;
   font-weight: 400;
   margin-top: 0.8rem;
+`;
+
+export const StyledSelect = styled(Select)`
+  width: 40%;
+  margin-top: 2rem;
+  align-self: flex-start;
+
+  font-size: 1.2rem;
+
+  @media (max-width: 1025px) {
+    width: 100%;
+  }
 `;

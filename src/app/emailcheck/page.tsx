@@ -176,6 +176,8 @@ export default function EmailCheck() {
   }: CheckEmailsFormDataTrue) {
     setIsLoading(true);
     try {
+      if (emailType === null) throw new Error("Please select email type");
+
       const response = await fetchPcrRecords(
         targetListCode,
         ["Candidate.EmailAddress", "CandidateId", "Candidate.CustomFields"],
@@ -218,9 +220,6 @@ export default function EmailCheck() {
           const workEmailsBatchSliced = workEmailsBatch.slice(start, end);
           const emailsBatchSliced = emailsBatch.slice(start, end);
 
-          console.log(workEmailsBatchSliced)
-          console.log(emailsBatchSliced)
-
           const responseZB = await emailValidation(
             ZBApiKey,
             emailType === "Work Email"
@@ -237,13 +236,9 @@ export default function EmailCheck() {
           zeroBounceApiArray = [...zeroBounceApiArray, ...responseZB];
         }
       } else {
-        console.log(workEmailsBatch)
-        console.log(emailsBatch)
-        zeroBounceApiArray =  await emailValidation(
+        zeroBounceApiArray = await emailValidation(
           ZBApiKey,
-          emailType === "Work Email"
-            ? workEmailsBatch
-            : emailsBatch
+          emailType === "Work Email" ? workEmailsBatch : emailsBatch
         );
       }
 
@@ -278,7 +273,7 @@ export default function EmailCheck() {
       setSteps(5);
       reset();
     } catch (error: any) {
-      alert(error);
+      alert(error.message);
       setIsLoading(false);
     }
   }
