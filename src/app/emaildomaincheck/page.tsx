@@ -28,7 +28,7 @@ import { CustomInput } from "@/components/CustomInput";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { fetchPcrRecords } from "@/utils/apiTools";
+import { createListonPcrSystem, fetchPcrRecords, populatePcrList } from "@/utils/apiTools";
 import {
   createRollUpList,
   insertRecordOnRollUpList,
@@ -228,42 +228,6 @@ export default function EmailDomainCheck() {
     return mostCommonPersonalEmailDomains.includes(emailDomain);
   }
 
-  async function createList(
-    userName: string,
-    description: string,
-    memo: string
-  ) {
-    try {
-      const response = await createRollUpList(
-        {
-          userName,
-          description,
-          memo,
-        },
-        user.SessionId
-      );
-
-      return response.RollupCode;
-    } catch (error) {
-      alert(error);
-    }
-  }
-
-  async function populateList(
-    candidates: CandidatesProps[],
-    sessionId: string,
-    rollUpCode: string
-  ) {
-    try {
-      const reqArray = candidates.map((candidate) =>
-        insertRecordOnRollUpList(rollUpCode, sessionId, candidate.CandidateId)
-      );
-      await Promise.all(reqArray);
-    } catch (error) {
-      alert(error);
-    }
-  }
-
   async function handleForm({
     targetListCode,
     personalDomainListName,
@@ -324,22 +288,25 @@ export default function EmailDomainCheck() {
 
       setSteps(3);
 
-      const personalDomainListCode = await createList(
+      const personalDomainListCode = await createListonPcrSystem(
         user.Login,
         personalDomainListName,
-        "This list contains users with personal email domains"
+        "This list contains users with personal email domains",
+        user.SessionId
       );
-      const workDomainListCode = await createList(
+      const businessDomainListCode = await createListonPcrSystem(
         user.Login,
         businessDomainListName,
-        "This list contains candidates with business email domains"
+        "This list contains candidates with business email domains",
+        user.SessionId
       );
 
-      setSteps(4);
+    setSteps(4);
 
-      console.log(
-        `personalListCode: ${personalDomainListCode}, workDomainListCode: ${workDomainListCode}`
-      );
+     await populatePcrList(personalEmailDomainCandidates, user.SessionId, personalDomainListCode)
+     await populatePcrList(businessDomainCandidates, user.SessionId, businessDomainListCode)
+
+     setSteps(5);
       // reset();
     } catch (error: any) {
       alert(error.message);
@@ -397,6 +364,15 @@ export default function EmailDomainCheck() {
             <Header title={"Wellcome to PCR Trasnslator !"} />
             <Content>
               <LoadingPlaceholder message={"Creating lists on PCR system..."} />
+            </Content>
+          </Container>
+        );
+      case 4:
+        return (
+          <Container>
+            <Header title={"Wellcome to PCR Trasnslator !"} />
+            <Content>
+              <LoadingPlaceholder message={"Populating your lists..."} />
             </Content>
           </Container>
         );

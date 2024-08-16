@@ -43,9 +43,7 @@ export const FinalFeedbackWrapper = styled.div`
   align-items: center;
   justify-content: center;
 
-  @media (min-width: 768px) {
-    width: 20%;
-  }
+  max-width: 600px;
 `;
 
 export const Title = styled.h1`
