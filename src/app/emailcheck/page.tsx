@@ -37,7 +37,11 @@ import {
   SelectOptionsProps,
 } from "@/@types";
 
-import { fetchPcrRecords } from "@/utils/apiTools";
+import {
+  createListonPcrSystem,
+  fetchPcrRecords,
+  populatePcrList,
+} from "@/utils/apiTools";
 
 const checkEmailsFormSchema = yup.object({
   targetListCode: yup.string().required(),
@@ -132,42 +136,6 @@ export default function EmailCheck() {
     return updatedCandidates;
   }
 
-  async function createList(
-    userName: string,
-    description: string,
-    memo: string
-  ) {
-    try {
-      const response = await createRollUpList(
-        {
-          userName,
-          description,
-          memo,
-        },
-        user.SessionId
-      );
-
-      return response.RollupCode;
-    } catch (error) {
-      alert(error);
-    }
-  }
-
-  async function populateValidEmailsList(
-    candidates: CandidatesProps[],
-    sessionId: string,
-    rollUpCode: string
-  ) {
-    try {
-      const reqArray = candidates.map((candidate) =>
-        insertRecordOnRollUpList(rollUpCode, sessionId, candidate.CandidateId)
-      );
-      await Promise.all(reqArray);
-    } catch (error) {
-      alert(error);
-    }
-  }
-
   async function handleForm({
     ZBApiKey,
     description,
@@ -260,11 +228,16 @@ export default function EmailCheck() {
 
       setSteps(3);
 
-      const rollUpCode = await createList(user.Login, description, memo);
+      const rollUpCode = await createListonPcrSystem(
+        user.Login,
+        description,
+        memo,
+        user.SessionId
+      );
 
       setSteps(4);
 
-      await populateValidEmailsList(
+      await populatePcrList(
         onlyCandidatesWithValidEmail,
         user.SessionId,
         rollUpCode

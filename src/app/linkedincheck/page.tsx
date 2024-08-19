@@ -28,7 +28,11 @@ import { useUser } from "../hooks/userContext";
 import { updateCandidate } from "@/services/PCR/candidatesService";
 import { LoadingPlaceholder } from "@/components/LoadingPlaceholder";
 import { useRouter } from "next/navigation";
-import { fetchPcrRecords } from "@/utils/apiTools";
+import {
+  createListonPcrSystem,
+  fetchPcrRecords,
+  populatePcrList,
+} from "@/utils/apiTools";
 
 const linkedinCheckSchema = yup.object({
   targetListCode: yup.string().required(),
@@ -75,49 +79,15 @@ export default function LinkedinCheck() {
       .replace(/linkedin\.com\/in\/+/i, "linkedin.com/in/");
   }
 
-  async function insertCandidateInList(
-    candidate: CandidatesProps,
-    rollUpCode: string,
-    sessionId: string
-  ) {
-    const response = await insertRecordOnRollUpList(
-      rollUpCode,
-      sessionId,
-      candidate.CandidateId
-    );
-
-    return response;
-  }
-
-  async function createList(
-    userName: string,
-    description: string,
-    memo: string
-  ) {
-    try {
-      const response = await createRollUpList(
-        {
-          userName,
-          description,
-          memo,
-        },
-        user.SessionId
-      );
-
-      return response.RollupCode;
-    } catch (error) {
-      alert(error);
-    }
-  }
-
   async function updateAllCandidates(
     candidates: CandidatesProps[],
     sessionId: string
   ) {
     try {
-      const reqArray = candidates.map(candidate => updatePerson(candidate, sessionId))
-      await Promise.all(reqArray)
-
+      const reqArray = candidates.map((candidate) =>
+        updatePerson(candidate, sessionId)
+      );
+      await Promise.all(reqArray);
     } catch (error) {
       alert(error);
     }
@@ -156,16 +126,6 @@ export default function LinkedinCheck() {
     }
   }
 
-  async function insertCandidates(
-    candidates: CandidatesProps[],
-    code: string,
-    sessionId: string
-  ) {
-    candidates.forEach((candidate: CandidatesProps) => {
-      insertCandidateInList(candidate, code, sessionId);
-    });
-  }
-
   async function handleForm({
     targetListCode,
     differentLinkedinListName,
@@ -187,7 +147,7 @@ export default function LinkedinCheck() {
         };
       });
 
-      setSteps(2)
+      setSteps(2);
 
       let doubledLinkedinCandidates: CandidatesProps[] = [];
       let differentLinkedinCandidates: CandidatesProps[] = [];
@@ -233,16 +193,17 @@ export default function LinkedinCheck() {
       const differentCandidatesListDescription =
         "This is a list of candidates which have different linkedin links";
 
-      const rollUpCodeDifferent = await createList(
+      const rollUpCodeDifferent = await createListonPcrSystem(
         user.Login,
         differentLinkedinListName,
-        differentCandidatesListDescription
+        differentCandidatesListDescription,
+        user.SessionId
       );
 
-      await insertCandidates(
+      await populatePcrList(
         differentLinkedinCandidates,
-        rollUpCodeDifferent,
-        user.SessionId
+        user.SessionId,
+        rollUpCodeDifferent
       );
 
       setSteps(4);
@@ -250,7 +211,7 @@ export default function LinkedinCheck() {
       await updateAllCandidates(doubledLinkedinCandidates, user.SessionId);
 
       setSteps(5);
-      reset()
+      reset();
     } catch (error) {
       alert(error);
       setIsLoading(false);
@@ -349,7 +310,7 @@ export default function LinkedinCheck() {
                   title={"Go to menu"}
                   isLoading={false}
                   onClick={() => {
-                    navigator.back()
+                    navigator.back();
                   }}
                 />
               </FinalFeedbackWrapper>
@@ -364,7 +325,7 @@ export default function LinkedinCheck() {
       <>
         <Title>Linkedin Check Form!</Title>
         <Form onSubmit={handleSubmit(handleForm)}>
-        <CustomInput
+          <CustomInput
             placeholder={"USER.001"}
             label={"Target List Code"}
             {...register("targetListCode")}
@@ -403,7 +364,3 @@ export default function LinkedinCheck() {
     </Container>
   );
 }
-function checkExpiredToken(loginDate: Date) {
-  throw new Error("Function not implemented.");
-}
-

@@ -307,7 +307,7 @@ export default function EmailDomainCheck() {
      await populatePcrList(businessDomainCandidates, user.SessionId, businessDomainListCode)
 
      setSteps(5);
-      // reset();
+      reset();
     } catch (error: any) {
       alert(error.message);
       setIsLoading(false);
