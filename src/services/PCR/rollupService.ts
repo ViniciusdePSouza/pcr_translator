@@ -1,4 +1,3 @@
-import { url } from "inspector";
 import { pcrApi } from "../api";
 
 interface RollupListBodyProps {
@@ -27,8 +26,8 @@ export async function createRollUpList(
     });
 
     return response.data;
-  } catch (error) {
-    console.log(error);
+  } catch (error: any) {
+    throw Error(error.response.data.errors);
   }
 }
 
@@ -48,8 +47,14 @@ export async function getRollUpListsRecords(
     fields = fields + `${fieldParams}%2C%20`;
   });
 
-  const url = resource + queryParam + code + resultsPerPageParam + fieldParamsUrl + fields;
-console.log(url)
+  const url =
+    resource +
+    queryParam +
+    code +
+    resultsPerPageParam +
+    fieldParamsUrl +
+    fields;
+
   try {
     const response = await pcrApi.get(url, {
       headers: {
@@ -58,8 +63,8 @@ console.log(url)
     });
 
     return response;
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
+    throw Error(error.response.data.errors);
   }
 }
 
@@ -82,10 +87,9 @@ export async function insertRecordOnRollUpList(
         Authorization: `Bearer ${sessionId}`,
       },
     });
-    console.log(response);
 
     return response;
-  } catch (error) {
-    console.log(error);
+  } catch (error: any) {
+    throw Error(error.response.data.errors);
   }
 }

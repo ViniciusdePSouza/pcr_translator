@@ -1,5 +1,9 @@
 "use client";
-import { CandidatesProps, CorrectNamesFormData, LoginApiResponseType } from "@/@types";
+import {
+  CandidatesProps,
+  CorrectNamesFormData,
+  LoginApiResponseType,
+} from "@/@types";
 
 import {
   Container,
@@ -166,37 +170,39 @@ export default function NamesCorrection() {
       const response = await fetchPcrRecords(
         targetListCode,
         fieldsArray,
-        user.SessionId
+       user.SessionId
       );
 
       setSteps(2);
 
-      const correctedCandidates = response.Results.map((candidate: CandidatesProps) => {
-        switch (nameOption) {
-          case "First Name":
-            candidate.Candidate.FirstName = formatName(
-              candidate.Candidate.FirstName!
-            );
-            break;
-          case "Last Name":
-            candidate.Candidate.LastName = formatName(
-              candidate.Candidate.LastName!
-            );
-            break;
-          case "Both":
-            candidate.Candidate.FirstName = formatName(
-              candidate.Candidate.FirstName!
-            );
-            candidate.Candidate.LastName = formatName(
-              candidate.Candidate.LastName!
-            );
-            break;
-          default:
-            return;
-        }
+      const correctedCandidates = response.Results.map(
+        (candidate: CandidatesProps) => {
+          switch (nameOption) {
+            case "First Name":
+              candidate.Candidate.FirstName = formatName(
+                candidate.Candidate.FirstName!
+              );
+              break;
+            case "Last Name":
+              candidate.Candidate.LastName = formatName(
+                candidate.Candidate.LastName!
+              );
+              break;
+            case "Both":
+              candidate.Candidate.FirstName = formatName(
+                candidate.Candidate.FirstName!
+              );
+              candidate.Candidate.LastName = formatName(
+                candidate.Candidate.LastName!
+              );
+              break;
+            default:
+              return;
+          }
 
-        return candidate;
-      });
+          return candidate;
+        }
+      );
 
       setSteps(3);
 
@@ -207,9 +213,13 @@ export default function NamesCorrection() {
       );
 
       setSteps(4);
-    } catch (error) {
+    } catch (error: any) {
+      alert(error.message);
+      if (error.message === "Invalid Session Id") {
+        signOut();
+        navigator.replace("/");
+      }
       setIsLoading(false);
-      alert(error);
     }
   }
 

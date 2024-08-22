@@ -212,8 +212,12 @@ export default function LinkedinCheck() {
 
       setSteps(5);
       reset();
-    } catch (error) {
-      alert(error);
+    } catch (error: any) {
+      alert(error.message);
+      if (error.message === "Invalid Session Id") {
+        signOut();
+        navigator.replace("/");
+      }
       setIsLoading(false);
     }
   }

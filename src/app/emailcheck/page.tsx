@@ -247,6 +247,10 @@ export default function EmailCheck() {
       reset();
     } catch (error: any) {
       alert(error.message);
+      if (error.message === "Invalid Session Id") {
+        signOut();
+        navigator.replace("/");
+      }
       setIsLoading(false);
     }
   }

@@ -11,7 +11,7 @@ export async function fetchPcrRecords(
 
     return response!.data;
   } catch (error: any) {
-    alert(error);
+    throw Error(error.message);
   }
 }
 
@@ -32,8 +32,8 @@ export async function createListonPcrSystem(
     );
 
     return response.RollupCode;
-  } catch (error) {
-    alert(error);
+  } catch (error: any) {
+    throw Error(error.message);
   }
 }
 
@@ -47,7 +47,7 @@ export async function populatePcrList(
       insertRecordOnRollUpList(rollUpCode, sessionId, candidate.CandidateId)
     );
     await Promise.all(reqArray);
-  } catch (error) {
-    alert(error);
+  } catch (error: any) {
+    throw Error(error.message);
   }
 }

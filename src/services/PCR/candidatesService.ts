@@ -1,8 +1,6 @@
 import { CandidateFields } from "@/@types";
 import { pcrApi } from "../api";
 import { validateFields } from "@/utils/validators";
-import { AxiosError } from "axios";
-import { getAxiosErrorMessage } from "@/utils/errors";
 
 export async function getCandidates(
   sessionId: string,
@@ -61,7 +59,7 @@ export async function updateCandidate(
   candidateId: number
 ) {
   const resource = `/candidatesV2/${candidateId}`;
-  
+
   try {
     const response = await pcrApi.put(resource, body, {
       headers: {
@@ -69,14 +67,7 @@ export async function updateCandidate(
       },
     });
     return response;
-  } catch (error) {
-    if (error instanceof AxiosError) {
-      if (error instanceof AxiosError) {
-        getAxiosErrorMessage(error)
-      } else {
-        throw Error("An unexpected error occurred:", error);
-      }
-    }
-    }
+  } catch (error: any) {
+    throw Error(error.response.data.errors);
   }
-
+}

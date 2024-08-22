@@ -310,6 +310,10 @@ export default function EmailDomainCheck() {
       reset();
     } catch (error: any) {
       alert(error.message);
+      if (error.message === "Invalid Session Id") {
+        signOut();
+        navigator.replace("/");
+      }
       setIsLoading(false);
     }
   }
