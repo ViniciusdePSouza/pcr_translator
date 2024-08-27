@@ -42,6 +42,7 @@ import {
   fetchPcrRecords,
   populatePcrList,
 } from "@/utils/apiTools";
+import { ErrorMessages } from "@/@types/error";
 
 const checkEmailsFormSchema = yup.object({
   targetListCode: yup.string().required(),
@@ -185,8 +186,15 @@ export default function EmailCheck() {
         for (let i = 0; i < numberOfLoops; i++) {
           const start = 200 * i;
           const end = Math.min(start + 200, workEmailsBatch.length);
-          const workEmailsBatchSliced = workEmailsBatch.slice(start, end);
-          const emailsBatchSliced = emailsBatch.slice(start, end);
+          let workEmailsBatchSliced = workEmailsBatch.slice(start, end);
+          let emailsBatchSliced = emailsBatch.slice(start, end);
+
+          if (
+            workEmailsBatchSliced.length === 0 ||
+            emailsBatchSliced.length === 0
+          ) {
+            throw new Error(ErrorMessages.NoEmailsToCheck);
+          }
 
           const responseZB = await emailValidation(
             ZBApiKey,
@@ -204,6 +212,10 @@ export default function EmailCheck() {
           zeroBounceApiArray = [...zeroBounceApiArray, ...responseZB];
         }
       } else {
+
+        if (workEmailsBatch.length === 0 || emailsBatch.length === 0) {
+          throw new Error(ErrorMessages.NoEmailsToCheck);
+        }
         zeroBounceApiArray = await emailValidation(
           ZBApiKey,
           emailType === "Work Email" ? workEmailsBatch : emailsBatch
