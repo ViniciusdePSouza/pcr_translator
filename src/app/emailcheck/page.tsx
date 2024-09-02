@@ -137,6 +137,10 @@ export default function EmailCheck() {
     return updatedCandidates;
   }
 
+  function checkIfEmailBatchIsEmpty(emailBatch: string[]) {
+    return emailBatch.length === 0;
+  }
+
   async function handleForm({
     ZBApiKey,
     description,
@@ -190,8 +194,9 @@ export default function EmailCheck() {
           let emailsBatchSliced = emailsBatch.slice(start, end);
 
           if (
-            workEmailsBatchSliced.length === 0 ||
-            emailsBatchSliced.length === 0
+            checkIfEmailBatchIsEmpty(
+              emailType === "Work Email" ? workEmailsBatch : emailsBatch
+            )
           ) {
             throw new Error(ErrorMessages.NoEmailsToCheck);
           }
@@ -212,10 +217,14 @@ export default function EmailCheck() {
           zeroBounceApiArray = [...zeroBounceApiArray, ...responseZB];
         }
       } else {
-
-        if (workEmailsBatch.length === 0 || emailsBatch.length === 0) {
+        if (
+          checkIfEmailBatchIsEmpty(
+            emailType === "Work Email" ? workEmailsBatch : emailsBatch
+          )
+        ) {
           throw new Error(ErrorMessages.NoEmailsToCheck);
         }
+
         zeroBounceApiArray = await emailValidation(
           ZBApiKey,
           emailType === "Work Email" ? workEmailsBatch : emailsBatch
