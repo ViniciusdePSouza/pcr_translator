@@ -25,10 +25,6 @@ import { useEffect, useState } from "react";
 import { useUser } from "../hooks/userContext";
 
 import { validateEmail } from "@/services/ZeroBounce/emailService";
-import {
-  createRollUpList,
-  insertRecordOnRollUpList,
-} from "@/services/PCR/rollupService";
 
 import {
   CandidatesProps,
@@ -58,9 +54,9 @@ enum CheckedEmailStatusEnum {
 
 export default function EmailCheck() {
   const [isLoading, setIsLoading] = useState(false);
-  const [emailType, setEmailType] = useState<
-    "Work Email" | "Personal Email" | null
-  >(null);
+  const [emailType, setEmailType] = useState<"Work Email" | "Personal Email">(
+    "Work Email"
+  );
   const [steps, setSteps] = useState(1);
 
   const { user, saveUser, checkExpiredToken, signOut } = useUser();

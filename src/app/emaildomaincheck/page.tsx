@@ -28,11 +28,11 @@ import { CustomInput } from "@/components/CustomInput";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { createListonPcrSystem, fetchPcrRecords, populatePcrList } from "@/utils/apiTools";
 import {
-  createRollUpList,
-  insertRecordOnRollUpList,
-} from "@/services/PCR/rollupService";
+  createListonPcrSystem,
+  fetchPcrRecords,
+  populatePcrList,
+} from "@/utils/apiTools";
 
 const emailCheckFormSchema = yup.object({
   targetListCode: yup.string().required(),
@@ -49,9 +49,9 @@ interface EmailDomainCheckFormData {
 export default function EmailDomainCheck() {
   const [isLoading, setIsLoading] = useState(false);
   const [steps, setSteps] = useState(1);
-  const [emailType, setEmailType] = useState<
-    "Work Email" | "Personal Email" | null
-  >(null);
+  const [emailType, setEmailType] = useState<"Work Email" | "Personal Email">(
+    "Work Email"
+  );
 
   const { saveUser, signOut, checkExpiredToken, user } = useUser();
   const navigator = useRouter();
@@ -301,12 +301,20 @@ export default function EmailDomainCheck() {
         user.SessionId
       );
 
-    setSteps(4);
+      setSteps(4);
 
-     await populatePcrList(personalEmailDomainCandidates, user.SessionId, personalDomainListCode)
-     await populatePcrList(businessDomainCandidates, user.SessionId, businessDomainListCode)
+      await populatePcrList(
+        personalEmailDomainCandidates,
+        user.SessionId,
+        personalDomainListCode
+      );
+      await populatePcrList(
+        businessDomainCandidates,
+        user.SessionId,
+        businessDomainListCode
+      );
 
-     setSteps(5);
+      setSteps(5);
       reset();
     } catch (error: any) {
       alert(error.message);
