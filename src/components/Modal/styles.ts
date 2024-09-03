@@ -5,11 +5,11 @@ export const Container = styled.div`
   border-radius: 8px;
   align-items: center;
   width: 100%;
-  max-width: 60rem;
+  max-width: 75rem;
   justify-content: center;
   background-color: ${({ theme }) => theme.COLORS.WHITE_100};
 
   @media (max-width: 1025px) {
-    width: 60%;
+    width: 75%;
   }
 `;
