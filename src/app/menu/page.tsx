@@ -65,6 +65,12 @@ export default function Menu() {
             onClick={() => navigateToDestinyRoute("/emaildomaincheck")}
             tutorialLink="https://www.loom.com/share/39a154408b9b4a7795068b7de25030da?sid=3caf7b12-018d-4394-996e-1b37fbb7ba65"
           />
+          <MenuOptions
+            isReady
+            title={"Format Job Description"}
+            onClick={() => navigateToDestinyRoute("/formatjobdescription")}
+            tutorialLink=""
+          />
         </MenuWrapper>
       </>
     );

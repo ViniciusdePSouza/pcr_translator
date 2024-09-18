@@ -8,4 +8,8 @@ const zeroBounceApi = axios.create({
   baseURL: "https://bulkapi.zerobounce.net/v2/"
 })
 
-export { pcrApi,  zeroBounceApi};
+const openAiApi = axios.create({
+  baseURL: "https://api.openai.com/v1/chat/",
+});
+
+export { pcrApi,  zeroBounceApi, openAiApi};
