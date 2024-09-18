@@ -44,6 +44,14 @@ export const FinalFeedbackWrapper = styled.div`
   @media (min-width: 768px) {
     width: 50%;
   }
+
+  span {
+    font-size: 1.8rem;
+    font-weight: 400;
+    text-align: center;
+    color: ${({ theme }) => theme.COLORS.WHITE_100};
+    margin-bottom: 1.8rem;
+  }
 `;
 
 export const Form = styled.form`

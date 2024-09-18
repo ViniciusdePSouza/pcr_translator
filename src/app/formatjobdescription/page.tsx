@@ -50,6 +50,7 @@ export default function FormatJobDescription() {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<GenerateJobDescriptionFormData>({
     resolver: yupResolver(GenerateJobDescriptionSchema),
@@ -109,6 +110,8 @@ export default function FormatJobDescription() {
         ["JobDescription", "JobId", "JobTitle"],
         user.SessionId
       );
+
+      setSteps(2);
       const prompt = `format this job description ${jobDescription} in that html pattern ${htmlPattern}`;
 
       if (prompt.length > 4600)
@@ -117,11 +120,13 @@ export default function FormatJobDescription() {
         );
 
       const htmlGenerated = await generateDescriptionHtml(prompt, apiKey);
+      setSteps(3);
 
       await updateJobDescription(pcrJob.JobId, user.SessionId, htmlGenerated);
+      setSteps(4);
+      reset();
     } catch (error: any) {
       alert(error.message);
-    } finally {
       setIsLoading(false);
     }
   }
@@ -134,8 +139,28 @@ export default function FormatJobDescription() {
             <Header title={"Welcome to PCR Translator !"} />
             <Content>
               <LoadingPlaceholder
-                message={"Fetching candidates from PCR list..."}
+                message={"Fetching Position from PCR list..."}
               />
+            </Content>
+          </Container>
+        );
+      case 2:
+        return (
+          <Container>
+            <Header title={"Welcome to PCR Translator !"} />
+            <Content>
+              <LoadingPlaceholder
+                message={"Generating Job Description with AI..."}
+              />
+            </Content>
+          </Container>
+        );
+      case 3:
+        return (
+          <Container>
+            <Header title={"Welcome to PCR Translator !"} />
+            <Content>
+              <LoadingPlaceholder message={"Updating Position on PCR..."} />
             </Content>
           </Container>
         );
@@ -146,11 +171,7 @@ export default function FormatJobDescription() {
             <Content>
               <FinalFeedbackWrapper>
                 <span>
-                  {`Awesome, everything went right!! Check your PCR System and you
-                  will see your new roll up list updated
-
-                  Ps: You might have to refresh your PCR rollup list page
-                  `}
+                  {`Awesome, everything went right!! Check your PCR System and you'll see your position data updated`}
                 </span>
                 <Button
                   title={"Start Again"}
