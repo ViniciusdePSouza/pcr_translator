@@ -6,7 +6,7 @@ export async function getPositionsById(
   sessionId: string
 ) {
   const resource = `/positions`;
-  const query = `Query=JobId+eq+${jobId}`;
+  const query = `Query=PositionId+eq+${jobId}`;
   const fieldsParam = `Fields=${fields.join(",")}`;
   const headers = {
     Authorization: `Bearer ${sessionId}`,
