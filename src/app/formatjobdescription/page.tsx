@@ -114,11 +114,6 @@ export default function FormatJobDescription() {
       setSteps(2);
       const prompt = `format this job description ${jobDescription} in that html pattern ${htmlPattern}`;
 
-      if (prompt.length > 4600)
-        throw Error(
-          "Prompt is too long, please try to summarize the job description a little"
-        );
-
       const htmlGenerated = await generateDescriptionHtml(prompt, apiKey);
       setSteps(3);
 
