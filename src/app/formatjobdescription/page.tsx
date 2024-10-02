@@ -26,6 +26,7 @@ import {
 } from "@/services/PCR/positionsService";
 import { useUser } from "../hooks/userContext";
 import { generateJobDescription } from "@/services/OpenAi/openAiService";
+import * as pdfjsLib from "pdfjs-dist";
 
 const GenerateJobDescriptionSchema = yup.object({
   jobDescription: yup.string().required("Job description is required"),
@@ -112,14 +113,15 @@ export default function FormatJobDescription() {
       );
 
       setSteps(2);
-      const prompt = `format this job description ${jobDescription} in that html pattern ${htmlPattern}`;
+      const prompt = `Please format this job description ${jobDescription} the following way: [Insert Position Title Here] Our client: [Insert Brief Description About Client Company Here] The Opportunity: [Describe Briefly the Position] Benefits: [What Are the Benefits of the Position] Duties and Responsibilities: [What Are the Duties to Perform in This Position] Qualifications: [What Are the Required Qualifications] Here is an example layout in HTML Format. I need the output to be in HTML also according to this html pattern ${htmlPattern}. If you can not find information for any of the components (Our client, The Opportunity, Benefits, Duties and Responsibilities, Qualifications) please say "Text needed here".`;
 
       const htmlGenerated = await generateDescriptionHtml(prompt, apiKey);
+
+      console.log("htmlGenerated", htmlGenerated.length);
       setSteps(3);
 
       await updateJobDescription(pcrJob.JobId, user.SessionId, htmlGenerated);
       setSteps(4);
-      reset();
     } catch (error: any) {
       alert(error.message);
       setIsLoading(false);
