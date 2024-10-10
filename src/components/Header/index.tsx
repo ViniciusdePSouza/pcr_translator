@@ -1,6 +1,6 @@
 "use client";
 
-import { List, SignOut } from "phosphor-react";
+import { Gear, List, SignOut } from "phosphor-react";
 import { ButtonWrapper, Container } from "./styles";
 import { defaultTheme } from "@/app/styles/theme/default";
 import { useUser } from "@/app/hooks/userContext";
@@ -22,6 +22,10 @@ export function Header({ title }: HeaderProps) {
   function goToMenu() {
     navigator.replace("/menu");
   }
+
+  function goToUserConfig(){
+    navigator.replace("/userconfig")
+  }
   return (
     <Container>
       <h1>{title}</h1>
@@ -30,6 +34,11 @@ export function Header({ title }: HeaderProps) {
           label={"Menu"}
           onClick={goToMenu}
           icon={<List size={24} color={defaultTheme.COLORS.WHITE_100} />}
+        />
+        <HeaderButton
+          label={"Config"}
+          onClick={goToUserConfig}
+          icon={<Gear size={24} color={defaultTheme.COLORS.WHITE_100} />}
         />
         <HeaderButton
           label={"Sign Out"}
