@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import {
   Container,
   Content,
+  ErrorMessage,
   TabContent,
   TabList,
   TabRoot,
@@ -18,19 +19,67 @@ import { CustomInput } from "@/components/CustomInput";
 import { TextArea } from "@/components/TextArea";
 import { FileHtml, Key } from "phosphor-react";
 
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import { useEffect, useState } from "react";
+
 type ActiveTabType = "apiKeys" | "html";
+
+interface ConfigFormData {
+  ZBApiKey?: string;
+  openAIApiKey?: string;
+  htmlPattern?: string;
+}
 
 export default function UserConfig() {
   const navigator = useRouter();
 
-  function handleSave(activeTab: ActiveTabType) {
-    console.log(activeTab);
+  const [activeTab, setActiveTab] = useState<ActiveTabType | string>("apiKeys");
+
+  const configFormSchema = yup.object({
+    ZBApiKey: yup.string().test('ZBApiKey-required', 'ZB API Key is required', function (value) {
+      if (activeTab === 'apiKeys') {
+        return !!value;
+      }
+      return true; 
+    }),
+    openAIApiKey: yup.string().test('openAIApiKey-required', 'OpenAI API Key is required', function (value) {
+      if (activeTab === 'apiKeys') {
+        return !!value; 
+      }
+      return true; 
+    }),
+    htmlPattern: yup.string().test('htmlPattern-required', 'HTML Pattern is required', function (value) {
+      if (activeTab === 'html') {
+        return !!value; 
+      }
+      return true; 
+    })
+  });
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+    setValue,
+  } = useForm<ConfigFormData>({
+    resolver: yupResolver(configFormSchema),
+  });
+
+  function handleSave(data: ConfigFormData) {
+    console.log(data);
   }
 
   const TabComponent = () => {
     return (
-      <>
-        <TabRoot defaultValue="apiKeys">
+      <form onSubmit={handleSubmit(handleSave)}>
+        <TabRoot
+          defaultValue="apiKeys"
+          value={activeTab}
+          onValueChange={(value: string) => setActiveTab(value)}
+        >
           <TabList>
             <TabTrigger value="apiKeys" children={<Key size={32} />} />
             <TabTrigger value="html" children={<FileHtml size={32} />} />
@@ -39,35 +88,35 @@ export default function UserConfig() {
             <CustomInput
               placeholder={"Please inform your zero bounce api key"}
               label={"Zero Bounce Api Key"}
+              {...register("ZBApiKey")}
             />
+            {errors.ZBApiKey && (
+              <ErrorMessage>{errors.ZBApiKey.message}</ErrorMessage>
+            )}
             <CustomInput
               placeholder={"Please inform your Open AI api key"}
               label={"Open AI API Key"}
+              {...register("openAIApiKey")}
             />
-            <Button
-              title={"Save"}
-              isLoading={false}
-              onClick={() => {
-                handleSave("apiKeys");
-              }}
-            />
+            {errors.openAIApiKey && (
+              <ErrorMessage>{errors.openAIApiKey.message}</ErrorMessage>
+            )}
+            <Button title={"Save"} isLoading={false} type="submit" />
           </TabContent>
 
           <TabContent value="html">
             <TextArea
               label={"Html Pattern"}
               placeholder={"<span>This is a html example</span>"}
+              {...register("htmlPattern")}
             />
-            <Button
-              title={"Save"}
-              isLoading={false}
-              onClick={() => {
-                handleSave("html");
-              }}
-            />
+            {errors.htmlPattern && (
+              <ErrorMessage>{errors.htmlPattern.message}</ErrorMessage>
+            )}
+            <Button title={"Save"} isLoading={false} type="submit" />
           </TabContent>
         </TabRoot>
-      </>
+      </form>
     );
   };
 

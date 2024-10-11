@@ -75,3 +75,9 @@ export const TabContent = styled(Tabs.Content)`
   border-bottom-left-radius: 8px;
   border-bottom-right-radius: 8px;
 `;
+export const ErrorMessage = styled.span`
+  color: ${({ theme }) => theme.COLORS.RED};
+  font-size: 16px;
+  font-weight: 400;
+  margin-top: 0.8rem;
+`;
