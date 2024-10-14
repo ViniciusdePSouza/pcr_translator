@@ -104,6 +104,18 @@ export default function UserConfig() {
     alert("Config saved successfully");
   }
 
+  useEffect(() => {
+    const config = localStorage.getItem("@pcr-translator:config");
+
+    if (config) {
+      const configObj: ConfigProps = JSON.parse(config);
+
+      setValue("ZBApiKey", configObj.apikeys.zeroboUNCE);
+      setValue("openAIApiKey", configObj.apikeys.openAI);
+      setValue("htmlPattern", configObj.htmlPattern);
+    } 
+  }, []);
+
   const TabComponent = () => {
     return (
       <form onSubmit={handleSubmit(handleSave)}>
