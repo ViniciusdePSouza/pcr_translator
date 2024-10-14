@@ -23,6 +23,8 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useEffect, useState } from "react";
+import { zeroBounceApi } from "@/services/api";
+import { ConfigProps } from "@/@types";
 
 type ActiveTabType = "apiKeys" | "html";
 
@@ -36,26 +38,41 @@ export default function UserConfig() {
   const navigator = useRouter();
 
   const [activeTab, setActiveTab] = useState<ActiveTabType | string>("apiKeys");
+  const [isLoading, setIsLoading] = useState(false);
 
   const configFormSchema = yup.object({
-    ZBApiKey: yup.string().test('ZBApiKey-required', 'ZB API Key is required', function (value) {
-      if (activeTab === 'apiKeys') {
-        return !!value;
-      }
-      return true; 
-    }),
-    openAIApiKey: yup.string().test('openAIApiKey-required', 'OpenAI API Key is required', function (value) {
-      if (activeTab === 'apiKeys') {
-        return !!value; 
-      }
-      return true; 
-    }),
-    htmlPattern: yup.string().test('htmlPattern-required', 'HTML Pattern is required', function (value) {
-      if (activeTab === 'html') {
-        return !!value; 
-      }
-      return true; 
-    })
+    ZBApiKey: yup
+      .string()
+      .test("ZBApiKey-required", "ZB API Key is required", function (value) {
+        if (activeTab === "apiKeys") {
+          return !!value;
+        }
+        return true;
+      }),
+    openAIApiKey: yup
+      .string()
+      .test(
+        "openAIApiKey-required",
+        "OpenAI API Key is required",
+        function (value) {
+          if (activeTab === "apiKeys") {
+            return !!value;
+          }
+          return true;
+        }
+      ),
+    htmlPattern: yup
+      .string()
+      .test(
+        "htmlPattern-required",
+        "HTML Pattern is required",
+        function (value) {
+          if (activeTab === "html") {
+            return !!value;
+          }
+          return true;
+        }
+      ),
   });
 
   const {
@@ -68,8 +85,23 @@ export default function UserConfig() {
     resolver: yupResolver(configFormSchema),
   });
 
-  function handleSave(data: ConfigFormData) {
-    console.log(data);
+  function handleSave({ htmlPattern, openAIApiKey, ZBApiKey }: ConfigFormData) {
+    setIsLoading(true);
+    let configString = localStorage.getItem("@pcr-translator:config");
+    let config: ConfigProps = configString
+      ? JSON.parse(configString)
+      : { apikeys: { zeroboUNCE: "", openAI: "" }, htmlPattern: "" };
+
+    if (activeTab === "apiKeys") {
+      config.apikeys.zeroboUNCE = ZBApiKey!;
+      config.apikeys.openAI = openAIApiKey!;
+    } else if (activeTab === "html") {
+      config.htmlPattern = htmlPattern!;
+    }
+
+    localStorage.setItem("@pcr-translator:config", JSON.stringify(config));
+    setIsLoading(false);
+    alert("Config saved successfully");
   }
 
   const TabComponent = () => {

@@ -25,3 +25,11 @@ export interface CheckEmailsFormDataTrue {
 export interface CorrectNamesFormData {
   targetListCode: string;
 }
+
+export interface ConfigProps {
+  apikeys: {
+    zeroboUNCE: string;
+    openAI: string;
+  };
+  htmlPattern: string;
+}
