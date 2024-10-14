@@ -26,20 +26,16 @@ import {
 } from "@/services/PCR/positionsService";
 import { useUser } from "../hooks/userContext";
 import { generateJobDescription } from "@/services/OpenAi/openAiService";
-import * as pdfjsLib from "pdfjs-dist";
+import { ConfigProps } from "@/@types";
 
 const GenerateJobDescriptionSchema = yup.object({
   jobDescription: yup.string().required("Job description is required"),
   targetJob: yup.string().required("Target Job is required"),
-  htmlPattern: yup.string().required("Html pattern is required"),
-  apiKey: yup.string().required("Api key is required"),
 });
 
 interface GenerateJobDescriptionFormData {
   jobDescription: string;
   targetJob: string;
-  htmlPattern: string;
-  apiKey: string;
 }
 
 export default function FormatJobDescription() {
@@ -101,10 +97,27 @@ export default function FormatJobDescription() {
   async function handleJobDescription({
     jobDescription,
     targetJob,
-    htmlPattern,
-    apiKey,
   }: GenerateJobDescriptionFormData) {
     setIsLoading(true);
+
+    const configString = localStorage.getItem("@pcr-translator:config");
+    let configObj: ConfigProps;
+
+    if (!configString) {
+      throw Error("Please update your account preferences");
+    } else {
+      configObj = JSON.parse(configString);
+      if (!configObj.htmlPattern)
+        throw Error(
+          "Please update your htmlPattern on your account preferences"
+        );
+
+      if (!configObj.apikeys.openAI)
+        throw Error(
+          "Please update your OpenAi ApiKey on your account preferences"
+        );
+    }
+
     try {
       const pcrJob = await fetchPosition(
         targetJob,
@@ -113,9 +126,9 @@ export default function FormatJobDescription() {
       );
 
       setSteps(2);
-      const prompt = `Please format this job description ${jobDescription} the following way: [Insert Position Title Here] Our client: [Insert Brief Description About Client Company Here] The Opportunity: [Describe Briefly the Position] Benefits: [What Are the Benefits of the Position] Duties and Responsibilities: [What Are the Duties to Perform in This Position] Qualifications: [What Are the Required Qualifications] Here is an example layout in HTML Format. I need the output to be in HTML also according to this html pattern ${htmlPattern}. If you can not find information for any of the components (Our client, The Opportunity, Benefits, Duties and Responsibilities, Qualifications) please say "Text needed here".`;
+      const prompt = `Please format this job description ${jobDescription} the following way: [Insert Position Title Here] Our client: [Insert Brief Description About Client Company Here] The Opportunity: [Describe Briefly the Position] Benefits: [What Are the Benefits of the Position] Duties and Responsibilities: [What Are the Duties to Perform in This Position] Qualifications: [What Are the Required Qualifications] Here is an example layout in HTML Format. I need the output to be in HTML also according to this html pattern ${configObj.htmlPattern}. If you can not find information for any of the components (Our client, The Opportunity, Benefits, Duties and Responsibilities, Qualifications) please say "Text needed here".`;
 
-      const htmlGenerated = await generateDescriptionHtml(prompt, apiKey);
+      const htmlGenerated = await generateDescriptionHtml(prompt, configObj.apikeys.openAI);
 
       console.log("htmlGenerated", htmlGenerated.length);
       setSteps(3);
@@ -198,11 +211,6 @@ export default function FormatJobDescription() {
         <Title>Format Job Description</Title>
         <Form onSubmit={handleSubmit(handleJobDescription)}>
           <CustomInput
-            placeholder={"Insert your api key here"}
-            label={"Open AI Api Key"}
-            {...register("apiKey")}
-          />
-          <CustomInput
             placeholder={"000001"}
             label={"Target Job Id"}
             {...register("targetJob")}
@@ -217,14 +225,6 @@ export default function FormatJobDescription() {
           />
           {errors.jobDescription && (
             <ErrorMessage>{errors.jobDescription.message}</ErrorMessage>
-          )}
-          <TextArea
-            label="Html pattern"
-            placeholder="Type the complete Job Description in here"
-            {...register("htmlPattern")}
-          />
-          {errors.htmlPattern && (
-            <ErrorMessage>{errors.htmlPattern.message}</ErrorMessage>
           )}
           <Button
             title={"Generate Description"}
