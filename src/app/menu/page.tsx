@@ -7,14 +7,25 @@ import { MenuOptions } from "./components/MenuOption";
 import { useRouter } from "next/navigation";
 import { useUser } from "../hooks/userContext";
 import { LoginApiResponseType } from "@/@types";
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export default function Menu() {
-  const navigator = useRouter();
+  const navigator = useRouter(); 
   const { saveUser, checkExpiredToken, signOut } = useUser();
 
   function navigateToDestinyRoute(route: string) {
     navigator.push(route);
+  }
+
+  async function checkAccountConfiguration() {
+    const config = await localStorage.getItem("@pcr-translator:config");
+
+    if (!config) {
+      alert(
+        "Seems like you didn't configure your account preferences yet, please configure it so you can use all the services from our app properly!"
+      );
+      navigateToDestinyRoute("/userconfig");
+    }
   }
 
   useEffect(() => {
@@ -33,6 +44,10 @@ export default function Menu() {
       signOut();
       navigator.replace("/");
     }
+  }, []);
+
+  useEffect(() => {
+    setTimeout(() => checkAccountConfiguration(), 700);
   }, []);
 
   const MenuComponent = () => {

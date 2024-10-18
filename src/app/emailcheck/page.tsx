@@ -29,6 +29,7 @@ import { validateEmail } from "@/services/ZeroBounce/emailService";
 import {
   CandidatesProps,
   CheckEmailsFormDataTrue,
+  ConfigProps,
   LoginApiResponseType,
   SelectOptionsProps,
 } from "@/@types";
@@ -44,7 +45,6 @@ const checkEmailsFormSchema = yup.object({
   targetListCode: yup.string().required(),
   description: yup.string().required(),
   memo: yup.string().required(),
-  ZBApiKey: yup.string().required(),
 });
 
 enum CheckedEmailStatusEnum {
@@ -138,13 +138,22 @@ export default function EmailCheck() {
   }
 
   async function handleForm({
-    ZBApiKey,
     description,
     memo,
     targetListCode,
   }: CheckEmailsFormDataTrue) {
     setIsLoading(true);
     try {
+      const config = localStorage.getItem("@pcr-translator:config");
+
+      if (!config) {
+        const error = new Error("Please update your account preferences");
+        (error as any).errorType = "config";
+        throw error;
+      }
+
+      const configObj: ConfigProps = JSON.parse(config)
+
       if (emailType === null) throw new Error("Please select email type");
 
       const response = await fetchPcrRecords(
@@ -198,7 +207,7 @@ export default function EmailCheck() {
           }
 
           const responseZB = await emailValidation(
-            ZBApiKey,
+            configObj.apiKeys.zeroBounce,
             emailType === "Work Email"
               ? workEmailsBatchSliced
               : emailsBatchSliced
@@ -222,7 +231,7 @@ export default function EmailCheck() {
         }
 
         zeroBounceApiArray = await emailValidation(
-          ZBApiKey,
+          configObj.apiKeys.zeroBounce,
           emailType === "Work Email" ? workEmailsBatch : emailsBatch
         );
       }
@@ -263,11 +272,19 @@ export default function EmailCheck() {
       setSteps(5);
       reset();
     } catch (error: any) {
-      alert(error.message);
+      if ((error as any).errorType === "config") {
+        alert(error.message);
+        navigator.push("/userconfig");
+        setIsLoading(false);
+        return
+      }
       if (error.message === "Invalid Session Id") {
         signOut();
+        setIsLoading(false);
         navigator.replace("/");
+        return
       }
+      alert(error.message);
       setIsLoading(false);
     }
   }
@@ -287,17 +304,6 @@ export default function EmailCheck() {
     } else {
       signOut();
       navigator.replace("/");
-    }
-  }, []);
-
-  useEffect(() => {
-    const zerobounceApi = localStorage.getItem(
-      "@pcr-translator:zerouBounceApi"
-    );
-
-    if (zerobounceApi) {
-      const noQuotesApiKey = zerobounceApi.replace(/"/g, "");
-      setValue("ZBApiKey", noQuotesApiKey);
     }
   }, []);
 
@@ -409,15 +415,6 @@ export default function EmailCheck() {
             {...register("memo")}
           />
           {errors.memo && <ErrorMessage>{errors.memo.message}</ErrorMessage>}
-
-          <CustomInput
-            placeholder={""}
-            label={"Zero Bounce API Key"}
-            {...register("ZBApiKey")}
-          />
-          {errors.ZBApiKey && (
-            <ErrorMessage>{errors.ZBApiKey.message}</ErrorMessage>
-          )}
 
           <StyledSelect
             options={options}

@@ -98,27 +98,36 @@ export default function FormatJobDescription() {
     jobDescription,
     targetJob,
   }: GenerateJobDescriptionFormData) {
-    setIsLoading(true);
-
-    const configString = localStorage.getItem("@pcr-translator:config");
-    let configObj: ConfigProps;
-
-    if (!configString) {
-      throw Error("Please update your account preferences");
-    } else {
-      configObj = JSON.parse(configString);
-      if (!configObj.htmlPattern)
-        throw Error(
-          "Please update your htmlPattern on your account preferences"
-        );
-
-      if (!configObj.apikeys.openAI)
-        throw Error(
-          "Please update your OpenAi ApiKey on your account preferences"
-        );
-    }
-
     try {
+      setIsLoading(true);
+      
+      const configString = localStorage.getItem("@pcr-translator:config");
+      let configObj: ConfigProps;
+      let error;
+      
+      if (!configString) {
+        error = new Error("Please update your account preferences");
+        (error as any).errorType = "config";
+        throw error;
+      } else {
+        configObj = JSON.parse(configString);
+        if (!configObj.htmlPattern) {
+          error = new Error(
+            "Please update your htmlPattern on your account preferences"
+          );
+          (error as any).errorType = "config";
+          throw error;
+        }
+
+        if (!configObj.apiKeys.openAI) {
+          error = new Error(
+            "Please update your OpenAi ApiKey on your account preferences"
+          );
+          (error as any).errorType = "config";
+          throw error;
+        }
+      }
+
       const pcrJob = await fetchPosition(
         targetJob,
         ["JobDescription", "JobId", "JobTitle"],
@@ -128,7 +137,10 @@ export default function FormatJobDescription() {
       setSteps(2);
       const prompt = `Please format this job description ${jobDescription} the following way: [Insert Position Title Here] Our client: [Insert Brief Description About Client Company Here] The Opportunity: [Describe Briefly the Position] Benefits: [What Are the Benefits of the Position] Duties and Responsibilities: [What Are the Duties to Perform in This Position] Qualifications: [What Are the Required Qualifications] Here is an example layout in HTML Format. I need the output to be in HTML also according to this html pattern ${configObj.htmlPattern}. If you can not find information for any of the components (Our client, The Opportunity, Benefits, Duties and Responsibilities, Qualifications) please say "Text needed here".`;
 
-      const htmlGenerated = await generateDescriptionHtml(prompt, configObj.apikeys.openAI);
+      const htmlGenerated = await generateDescriptionHtml(
+        prompt,
+        configObj.apiKeys.openAI
+      );
 
       console.log("htmlGenerated", htmlGenerated.length);
       setSteps(3);
@@ -136,6 +148,12 @@ export default function FormatJobDescription() {
       await updateJobDescription(pcrJob.JobId, user.SessionId, htmlGenerated);
       setSteps(4);
     } catch (error: any) {
+      if ((error as any).errorType === "config") {
+        alert(error.message);
+        navigator.push("/userconfig");
+        setIsLoading(false);
+        return;
+      }
       alert(error.message);
       setIsLoading(false);
     }

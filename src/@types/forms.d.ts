@@ -19,7 +19,6 @@ export interface CheckEmailsFormDataTrue {
   targetListCode: string;
   description: string;
   memo: string;
-  ZBApiKey: string;
 }
 
 export interface CorrectNamesFormData {
@@ -27,8 +26,8 @@ export interface CorrectNamesFormData {
 }
 
 export interface ConfigProps {
-  apikeys: {
-    zeroboUNCE: string;
+  apiKeys: {
+    zeroBounce: string;
     openAI: string;
   };
   htmlPattern: string;

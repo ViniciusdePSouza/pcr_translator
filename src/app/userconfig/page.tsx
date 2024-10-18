@@ -42,25 +42,9 @@ export default function UserConfig() {
 
   const configFormSchema = yup.object({
     ZBApiKey: yup
-      .string()
-      .test("ZBApiKey-required", "ZB API Key is required", function (value) {
-        if (activeTab === "apiKeys") {
-          return !!value;
-        }
-        return true;
-      }),
+      .string(),
     openAIApiKey: yup
-      .string()
-      .test(
-        "openAIApiKey-required",
-        "OpenAI API Key is required",
-        function (value) {
-          if (activeTab === "apiKeys") {
-            return !!value;
-          }
-          return true;
-        }
-      ),
+      .string(),
     htmlPattern: yup
       .string()
       .test(
@@ -90,11 +74,15 @@ export default function UserConfig() {
     let configString = localStorage.getItem("@pcr-translator:config");
     let config: ConfigProps = configString
       ? JSON.parse(configString)
-      : { apikeys: { zeroboUNCE: "", openAI: "" }, htmlPattern: "" };
+      : { apikeys: { zeroBounce: "", openAI: "" }, htmlPattern: "" };
+
+      if (!config.apiKeys) {
+        config.apiKeys = { zeroBounce: "", openAI: "" };
+      }
 
     if (activeTab === "apiKeys") {
-      config.apikeys.zeroboUNCE = ZBApiKey!;
-      config.apikeys.openAI = openAIApiKey!;
+      config.apiKeys.zeroBounce = ZBApiKey!;
+      config.apiKeys.openAI = openAIApiKey!;
     } else if (activeTab === "html") {
       config.htmlPattern = htmlPattern!;
     }
@@ -110,8 +98,8 @@ export default function UserConfig() {
     if (config) {
       const configObj: ConfigProps = JSON.parse(config);
 
-      setValue("ZBApiKey", configObj.apikeys.zeroboUNCE);
-      setValue("openAIApiKey", configObj.apikeys.openAI);
+      setValue("ZBApiKey", configObj.apiKeys.zeroBounce);
+      setValue("openAIApiKey", configObj.apiKeys.openAI);
       setValue("htmlPattern", configObj.htmlPattern);
     } 
   }, []);
