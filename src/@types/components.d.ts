@@ -9,6 +9,7 @@ interface CustomInputProps extends InputHTMLAttributes<HTMLInputElement> {
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   title: string;
   isLoading: boolean;
+  variant?: ButtonVariantColor
 }
 
 export interface CandidateCardProps {

@@ -40,6 +40,9 @@ import {
   populatePcrList,
 } from "@/utils/apiTools";
 import { ErrorMessages } from "@/@types/error";
+import { WarningModal } from "@/components/WarningModal";
+import { Warning } from "phosphor-react";
+import { defaultTheme } from "../styles/theme/default";
 
 const checkEmailsFormSchema = yup.object({
   targetListCode: yup.string().required(),
@@ -58,6 +61,7 @@ export default function EmailCheck() {
     "Work Email"
   );
   const [steps, setSteps] = useState(1);
+  const [showModal, setShowModal] = useState(true);
 
   const { user, saveUser, checkExpiredToken, signOut } = useUser();
 
@@ -152,7 +156,7 @@ export default function EmailCheck() {
         throw error;
       }
 
-      const configObj: ConfigProps = JSON.parse(config)
+      const configObj: ConfigProps = JSON.parse(config);
 
       if (emailType === null) throw new Error("Please select email type");
 
@@ -276,13 +280,13 @@ export default function EmailCheck() {
         alert(error.message);
         navigator.push("/userconfig");
         setIsLoading(false);
-        return
+        return;
       }
       if (error.message === "Invalid Session Id") {
         signOut();
         setIsLoading(false);
         navigator.replace("/");
-        return
+        return;
       }
       alert(error.message);
       setIsLoading(false);
@@ -435,6 +439,15 @@ export default function EmailCheck() {
   return (
     <Container>
       <Header title={"Email Check !"} />
+      <WarningModal
+        showModal={showModal}
+        icon={<Warning size={36} color={defaultTheme.COLORS.PRIMARY} />}
+        text={"loren ipsun loren ipsunloren ipsunloren ipsunloren ipsunloren ipsunloren ipsunloren ipsunloren ipsunloren ipsunloren ipsunloren ipsun"}
+        primaryButtonText="Confirmar"
+        secondaryButtonText="Cancel"
+        onConfirm={() => console.log("confirm")}
+        onCancel={() => setShowModal(false)}
+      />
       <Content>
         <Modal content={<FormComponent />} />
       </Content>

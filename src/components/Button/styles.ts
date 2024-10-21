@@ -1,6 +1,27 @@
+import { defaultTheme } from "@/app/styles/theme/default";
 import styled from "styled-components";
 
-export const Container = styled.button`
+export type ButtonVariantColor = "PRIMARY" | "SECONDARY";
+
+const buttonVariantBackgroundColor = {
+  PRIMARY: `${defaultTheme.COLORS.SECONDARY};`,
+  SECONDARY: `transparent`,
+};
+
+const buttonVariantBorder = {
+  PRIMARY: `none`,
+  SECONDARY: `1px solid ${defaultTheme.COLORS.SECONDARY};`,
+};
+const buttonVariantTextColor = {
+  PRIMARY: `${defaultTheme.COLORS.WHITE};`,
+  SECONDARY: `${defaultTheme.COLORS.SECONDARY};`,
+};
+const buttonVariantTextWeight = {
+  PRIMARY: `700`,
+  SECONDARY: `400`,
+};
+
+export const Container = styled.button<{ variant: ButtonVariantColor }>`
   all: unset;
   width: 100%;
 
@@ -8,26 +29,28 @@ export const Container = styled.button`
   align-items: center;
   justify-content: center;
 
-  padding: 1.2rem .4rem;
+  padding: 1.2rem 0.4rem;
 
   margin-top: 2.6rem;
 
   font-size: 2rem;
-  font-weight: 700;
+  ${(props) => `font-weight: ${buttonVariantTextWeight[props.variant]}`};
 
   border-radius: 8px;
 
-  color: ${({ theme }) => theme.COLORS.WHITE_100};
+  ${(props) => `color: ${buttonVariantTextColor[props.variant]}`};
 
-  background: ${({ theme }) => theme.COLORS.SECONDARY};
+  ${(props) => `background: ${buttonVariantBackgroundColor[props.variant]}`};
+
+  ${(props) => `border: ${buttonVariantBorder[props.variant]}`};
 
   cursor: pointer;
 
   transition: transform 0.2s;
 
   &:active {
-      box-shadow: inset -4px 4px 0 ${({ theme }) => theme.COLORS.GRAY_400};
-    }
+    box-shadow: inset -4px 4px 0 ${({ theme }) => theme.COLORS.GRAY_400};
+  }
 
   &:disabled {
     cursor: not-allowed;
