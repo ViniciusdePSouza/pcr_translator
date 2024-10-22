@@ -61,7 +61,10 @@ export default function EmailCheck() {
     "Work Email"
   );
   const [steps, setSteps] = useState(1);
-  const [showModal, setShowModal] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [triggerFunction, setTriggerFunction] = useState(() => () => {});
+  const [buttonText, setButtonText] = useState("Proceed"); 
 
   const { user, saveUser, checkExpiredToken, signOut } = useUser();
 
@@ -77,7 +80,6 @@ export default function EmailCheck() {
     handleSubmit,
     reset,
     formState: { errors },
-    setValue,
   } = useForm<CheckEmailsFormDataTrue>({
     resolver: yupResolver(checkEmailsFormSchema),
   });
@@ -96,8 +98,8 @@ export default function EmailCheck() {
       );
 
       return response;
-    } catch (error) {
-      alert(error);
+    } catch (error:any) {
+      throw new Error(error.message);
     }
   }
 
@@ -141,6 +143,18 @@ export default function EmailCheck() {
     return emailBatch.length === 0;
   }
 
+  function defineWarmingModalProps(
+    message: string,
+    buttonText: string,
+    functionToTrigger: () => void  
+  ) {
+    setErrorMessage(message);
+    setButtonText(buttonText);  
+    setIsLoading(false);
+    setShowModal(true);
+    setTriggerFunction(() => () => functionToTrigger());
+  }
+
   async function handleForm({
     description,
     memo,
@@ -155,8 +169,15 @@ export default function EmailCheck() {
         (error as any).errorType = "config";
         throw error;
       }
-
       const configObj: ConfigProps = JSON.parse(config);
+
+      if (configObj.apiKeys.zeroBounce.length === 0) {
+        const error = new Error(
+          "Please update your Zero Bounce Api Key on your account preferences"
+        );
+        (error as any).errorType = "config";
+        throw error;
+      }
 
       if (emailType === null) throw new Error("Please select email type");
 
@@ -240,10 +261,11 @@ export default function EmailCheck() {
         );
       }
 
-      if (zeroBounceApiArray === undefined)
+      if (zeroBounceApiArray === undefined) {
         throw Error(
           "No response from Zero Bounce server, please try again later"
         );
+      }
 
       const updatedCandidates = updateCandidates(
         candidates,
@@ -277,19 +299,22 @@ export default function EmailCheck() {
       reset();
     } catch (error: any) {
       if ((error as any).errorType === "config") {
-        alert(error.message);
-        navigator.push("/userconfig");
-        setIsLoading(false);
+        defineWarmingModalProps(error.message, "Proceed", () =>
+          navigator.push("/userconfig")
+        );
+        setErrorMessage(error.message);
         return;
       }
+
       if (error.message === "Invalid Session Id") {
-        signOut();
-        setIsLoading(false);
-        navigator.replace("/");
+        defineWarmingModalProps(error.message, "Ok", () => {
+          signOut();
+          navigator.replace("/");
+        });
         return;
       }
-      alert(error.message);
-      setIsLoading(false);
+
+      defineWarmingModalProps(error.message, "Ok", () => setShowModal(false));
     }
   }
 
@@ -442,10 +467,10 @@ export default function EmailCheck() {
       <WarningModal
         showModal={showModal}
         icon={<Warning size={36} color={defaultTheme.COLORS.PRIMARY} />}
-        text={"loren ipsun loren ipsunloren ipsunloren ipsunloren ipsunloren ipsunloren ipsunloren ipsunloren ipsunloren ipsunloren ipsunloren ipsun"}
-        primaryButtonText="Confirmar"
+        text={errorMessage}
+        primaryButtonText={buttonText}
         secondaryButtonText="Cancel"
-        onConfirm={() => console.log("confirm")}
+        onConfirm={triggerFunction}
         onCancel={() => setShowModal(false)}
       />
       <Content>
