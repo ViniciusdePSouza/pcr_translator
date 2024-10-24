@@ -1,9 +1,17 @@
 "use client";
+import { ConfigProps } from "@/@types";
 
 import { Header } from "@/components/Header";
 import { Modal } from "@/components/Modal";
+import { Button } from "@/components/Button";
+import { CustomInput } from "@/components/CustomInput";
+import { TextArea } from "@/components/TextArea";
+import { WarningModal } from "@/components/WarningModal";
+
+import { FileHtml, Key, Warning } from "phosphor-react";
 
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import {
   Container,
@@ -14,19 +22,11 @@ import {
   TabRoot,
   TabTrigger,
 } from "./styles";
-import { Button } from "@/components/Button";
-import { CustomInput } from "@/components/CustomInput";
-import { TextArea } from "@/components/TextArea";
-import { FileHtml, Key, Warning } from "phosphor-react";
+import { defaultTheme } from "../styles/theme/default";
 
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { useEffect, useState } from "react";
-import { zeroBounceApi } from "@/services/api";
-import { ConfigProps } from "@/@types";
-import { WarningModal } from "@/components/WarningModal";
-import { defaultTheme } from "../styles/theme/default";
 
 type ActiveTabType = "apiKeys" | "html";
 

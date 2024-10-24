@@ -10,11 +10,15 @@ import {
   StyledSelect,
   Title,
 } from "./styles";
+import { defaultTheme } from "../styles/theme/default";
 
 import { Modal } from "@/components/Modal";
 import { CustomInput } from "@/components/CustomInput";
 import { Button } from "@/components/Button";
 import { LoadingPlaceholder } from "@/components/LoadingPlaceholder";
+import { WarningModal } from "@/components/WarningModal";
+
+import { Warning } from "phosphor-react";
 
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -33,16 +37,13 @@ import {
   LoginApiResponseType,
   SelectOptionsProps,
 } from "@/@types";
+import { ErrorMessages } from "@/@types/error";
 
 import {
   createListonPcrSystem,
   fetchPcrRecords,
   populatePcrList,
 } from "@/utils/apiTools";
-import { ErrorMessages } from "@/@types/error";
-import { WarningModal } from "@/components/WarningModal";
-import { Warning } from "phosphor-react";
-import { defaultTheme } from "../styles/theme/default";
 
 const checkEmailsFormSchema = yup.object({
   targetListCode: yup.string().required(),

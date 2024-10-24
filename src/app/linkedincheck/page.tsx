@@ -7,9 +7,14 @@ import {
   Form,
   Title,
 } from "./styles";
+import { defaultTheme } from "../styles/theme/default";
 
 import { Header } from "@/components/Header";
 import { Modal } from "@/components/Modal";
+import { LoadingPlaceholder } from "@/components/LoadingPlaceholder";
+import { WarningModal } from "@/components/WarningModal";
+
+import { Warning } from "phosphor-react";
 
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -19,15 +24,12 @@ import { useEffect, useState } from "react";
 import { CustomInput } from "@/components/CustomInput";
 import { Button } from "@/components/Button";
 import { CandidatesProps, LoginApiResponseType } from "@/@types";
-import {
-  createRollUpList,
-  getRollUpListsRecords,
-  insertRecordOnRollUpList,
-} from "@/services/PCR/rollupService";
+
 import { useUser } from "../hooks/userContext";
-import { updateCandidate } from "@/services/PCR/candidatesService";
-import { LoadingPlaceholder } from "@/components/LoadingPlaceholder";
+
 import { useRouter } from "next/navigation";
+
+import { updateCandidate } from "@/services/PCR/candidatesService";
 import {
   createListonPcrSystem,
   fetchPcrRecords,
@@ -47,6 +49,10 @@ interface LinkedinCheckFormData {
 export default function LinkedinCheck() {
   const [steps, setSteps] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [triggerFunction, setTriggerFunction] = useState(() => () => {});
+  const [buttonText, setButtonText] = useState("Proceed"); 
 
   const { user, saveUser, checkExpiredToken, signOut } = useUser();
   const navigator = useRouter();
@@ -88,8 +94,8 @@ export default function LinkedinCheck() {
         updatePerson(candidate, sessionId)
       );
       await Promise.all(reqArray);
-    } catch (error) {
-      alert(error);
+    } catch (error: any) {
+      throw new Error(error);
     }
   }
 
@@ -115,15 +121,27 @@ export default function LinkedinCheck() {
     }
     try {
       const response = await updateCandidate(
-        sessionId,
+        "sessionId",
         body,
         candidate.CandidateId
       );
 
       return response;
-    } catch (error) {
-      alert(error);
+    } catch (error: any) {
+      throw error.message;
     }
+  }
+
+  function defineWarmingModalProps(
+    message: string,
+    buttonText: string,
+    functionToTrigger: () => void  
+  ) {
+    setErrorMessage(message);
+    setButtonText(buttonText);  
+    setIsLoading(false);
+    setShowModal(true);
+    setTriggerFunction(() => () => functionToTrigger());
   }
 
   async function handleForm({
@@ -213,12 +231,15 @@ export default function LinkedinCheck() {
       setSteps(5);
       reset();
     } catch (error: any) {
-      alert(error.message);
       if (error.message === "Invalid Session Id") {
-        signOut();
-        navigator.replace("/");
+        defineWarmingModalProps(error.message, "Ok", () => {
+          signOut();
+          navigator.replace("/");
+        });
+        return;
       }
-      setIsLoading(false);
+
+      defineWarmingModalProps(error.message, "Ok", () => setShowModal(false));
     }
   }
 
@@ -362,6 +383,15 @@ export default function LinkedinCheck() {
   return (
     <Container>
       <Header title={"Linkedin Check !"} />
+      <WarningModal
+        showModal={showModal}
+        icon={<Warning size={36} color={defaultTheme.COLORS.PRIMARY} />}
+        text={errorMessage}
+        primaryButtonText={buttonText}
+        secondaryButtonText="Cancel"
+        onConfirm={triggerFunction}
+        onCancel={() => setShowModal(false)}
+      />
       <Content>
         <Modal content={<FormComponent />} />
       </Content>
