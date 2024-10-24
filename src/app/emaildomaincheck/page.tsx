@@ -14,6 +14,7 @@ import {
   StyledSelect,
   Title,
 } from "./styles";
+import { defaultTheme } from "../styles/theme/default";
 
 import { useEffect, useState } from "react";
 import { useUser } from "../hooks/userContext";
@@ -24,10 +25,14 @@ import { Modal } from "@/components/Modal";
 import { LoadingPlaceholder } from "@/components/LoadingPlaceholder";
 import { Button } from "@/components/Button";
 import { CustomInput } from "@/components/CustomInput";
+import { WarningModal } from "@/components/WarningModal";
+
+import { Warning } from "phosphor-react";
 
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
+
 import {
   createListonPcrSystem,
   fetchPcrRecords,
@@ -52,6 +57,10 @@ export default function EmailDomainCheck() {
   const [emailType, setEmailType] = useState<"Work Email" | "Personal Email">(
     "Work Email"
   );
+  const [showModal, setShowModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [triggerFunction, setTriggerFunction] = useState(() => () => {});
+  const [buttonText, setButtonText] = useState("Proceed");
 
   const { saveUser, signOut, checkExpiredToken, user } = useUser();
   const navigator = useRouter();
@@ -205,11 +214,6 @@ export default function EmailDomainCheck() {
     "@zonnet.nl",
   ];
 
-  function verifyDomain(
-    candidate: string,
-    emailType: "Work Email" | "Personal Email"
-  ) {}
-
   const {
     register,
     handleSubmit,
@@ -218,6 +222,18 @@ export default function EmailDomainCheck() {
   } = useForm<EmailDomainCheckFormData>({
     resolver: yupResolver(emailCheckFormSchema),
   });
+
+  function defineWarmingModalProps(
+    message: string,
+    buttonText: string,
+    functionToTrigger: () => void
+  ) {
+    setErrorMessage(message);
+    setButtonText(buttonText);
+    setIsLoading(false);
+    setShowModal(true);
+    setTriggerFunction(() => () => functionToTrigger());
+  }
 
   const handleEmailTypeChange = () => {
     setEmailType(emailType === "Work Email" ? "Personal Email" : "Work Email");
@@ -317,12 +333,15 @@ export default function EmailDomainCheck() {
       setSteps(5);
       reset();
     } catch (error: any) {
-      alert(error.message);
       if (error.message === "Invalid Session Id") {
-        signOut();
-        navigator.replace("/");
+        defineWarmingModalProps(error.message, "Ok", () => {
+          signOut();
+          navigator.replace("/");
+        });
+        return;
       }
-      setIsLoading(false);
+
+      defineWarmingModalProps(error.message, "Ok", () => setShowModal(false));
     }
   }
 
@@ -471,6 +490,15 @@ export default function EmailDomainCheck() {
   return (
     <Container>
       <Header title={"Filter Email Domain!"} />
+      <WarningModal
+        showModal={showModal}
+        icon={<Warning size={36} color={defaultTheme.COLORS.PRIMARY} />}
+        text={errorMessage}
+        primaryButtonText={buttonText}
+        secondaryButtonText="Cancel"
+        onConfirm={triggerFunction}
+        onCancel={() => setShowModal(false)}
+      />
       <Content>
         <Modal content={<FormComponent />} />
       </Content>

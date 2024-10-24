@@ -1,6 +1,6 @@
 "use client";
+import { ConfigProps } from "@/@types";
 
-import { Header } from "@/components/Header";
 import {
   Container,
   Content,
@@ -9,24 +9,32 @@ import {
   Form,
   Title,
 } from "./styles";
+import { defaultTheme } from "../styles/theme/default";
+
+import { Header } from "@/components/Header";
 import { Modal } from "@/components/Modal";
-import { useState } from "react";
+import { WarningModal } from "@/components/WarningModal";
 import { LoadingPlaceholder } from "@/components/LoadingPlaceholder";
 import { Button } from "@/components/Button";
-import { useRouter } from "next/navigation";
 import { TextArea } from "@/components/TextArea";
+import { CustomInput } from "@/components/CustomInput";
+
+import { Warning } from "phosphor-react";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { CustomInput } from "@/components/CustomInput";
+
 import {
   getPositionsById,
   updatePositions,
 } from "@/services/PCR/positionsService";
-import { useUser } from "../hooks/userContext";
 import { generateJobDescription } from "@/services/OpenAi/openAiService";
-import { ConfigProps } from "@/@types";
+
+import { useUser } from "../hooks/userContext";
 
 const GenerateJobDescriptionSchema = yup.object({
   jobDescription: yup.string().required("Job description is required"),
@@ -41,13 +49,16 @@ interface GenerateJobDescriptionFormData {
 export default function FormatJobDescription() {
   const [isLoading, setIsLoading] = useState(false);
   const [steps, setSteps] = useState(1);
+  const [showModal, setShowModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [triggerFunction, setTriggerFunction] = useState(() => () => {});
+  const [buttonText, setButtonText] = useState("Proceed");
 
   const { user } = useUser();
 
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors },
   } = useForm<GenerateJobDescriptionFormData>({
     resolver: yupResolver(GenerateJobDescriptionSchema),
@@ -92,6 +103,18 @@ export default function FormatJobDescription() {
     } catch (error: any) {
       throw Error(error.message);
     }
+  }
+
+  function defineWarmingModalProps(
+    message: string,
+    buttonText: string,
+    functionToTrigger: () => void
+  ) {
+    setErrorMessage(message);
+    setButtonText(buttonText);
+    setIsLoading(false);
+    setShowModal(true);
+    setTriggerFunction(() => () => functionToTrigger());
   }
 
   async function handleJobDescription({
@@ -142,20 +165,21 @@ export default function FormatJobDescription() {
         configObj.apiKeys.openAI
       );
 
-      console.log("htmlGenerated", htmlGenerated.length);
       setSteps(3);
 
       await updateJobDescription(pcrJob.JobId, user.SessionId, htmlGenerated);
       setSteps(4);
     } catch (error: any) {
       if ((error as any).errorType === "config") {
-        alert(error.message);
-        navigator.push("/userconfig");
-        setIsLoading(false);
+        defineWarmingModalProps(error.message, "Proceed", () => {
+          setShowModal(false)
+          navigator.push("/userconfig");
+        });
+
         return;
       }
-      alert(error.message);
-      setIsLoading(false);
+
+      defineWarmingModalProps(error.message, "Ok", () => setShowModal(false));
     }
   }
 
@@ -257,6 +281,15 @@ export default function FormatJobDescription() {
   return (
     <Container>
       <Header title={"Format Job Description !"} />
+      <WarningModal
+        showModal={showModal}
+        icon={<Warning size={36} color={defaultTheme.COLORS.PRIMARY} />}
+        text={errorMessage}
+        primaryButtonText={buttonText}
+        secondaryButtonText="Cancel"
+        onConfirm={triggerFunction}
+        onCancel={() => setShowModal(false)}
+      />
       <Content>
         <Modal content={<FormComponent />} />
       </Content>
