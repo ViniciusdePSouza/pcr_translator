@@ -32,6 +32,9 @@ import { updateCandidate } from "@/services/PCR/candidatesService";
 import { fetchPcrRecords } from "@/utils/apiTools";
 
 import { useUser } from "../hooks/userContext";
+import { WarningModal } from "@/components/WarningModal";
+import { Warning } from "phosphor-react";
+import { defaultTheme } from "../styles/theme/default";
 
 interface SelectOptionProps {
   value: "First Name" | "Last Name" | "Both";
@@ -48,6 +51,10 @@ export default function NamesCorrection() {
   const [nameOption, setNameOption] = useState<
     "First Name" | "Last Name" | "Both" | null
   >(null);
+  const [showModal, setShowModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [triggerFunction, setTriggerFunction] = useState(() => () => {});
+  const [buttonText, setButtonText] = useState("Proceed");
 
   const { checkExpiredToken, saveUser, signOut, user } = useUser();
   const navigator = useRouter();
@@ -96,9 +103,8 @@ export default function NamesCorrection() {
         updatePerson(candidate, sessionId, action)
       );
       await Promise.all(reqArray);
-    } catch (error) {
-      setIsLoading(false);
-      alert(error);
+    } catch (error: any) {
+      throw new Error(error);
     }
   }
 
@@ -138,10 +144,21 @@ export default function NamesCorrection() {
       );
 
       return response;
-    } catch (error) {
-      setIsLoading(false);
-      alert(error);
+    } catch (error: any) {
+      throw error.message;
     }
+  }
+
+  function defineWarmingModalProps(
+    message: string,
+    buttonText: string,
+    functionToTrigger: () => void
+  ) {
+    setErrorMessage(message);
+    setButtonText(buttonText);
+    setIsLoading(false);
+    setShowModal(true);
+    setTriggerFunction(() => () => functionToTrigger());
   }
 
   async function handleForm({ targetListCode }: CorrectNamesFormData) {
@@ -170,8 +187,13 @@ export default function NamesCorrection() {
       const response = await fetchPcrRecords(
         targetListCode,
         fieldsArray,
-       user.SessionId
+        user.SessionId
       );
+
+      if (response.Results.length == 0)
+        throw new Error(
+          "The list you attempted to retrieve names from is currently empty. Please ensure that your PCR list contains records before proceeding."
+        );
 
       setSteps(2);
 
@@ -214,12 +236,15 @@ export default function NamesCorrection() {
 
       setSteps(4);
     } catch (error: any) {
-      alert(error.message);
       if (error.message === "Invalid Session Id") {
-        signOut();
-        navigator.replace("/");
+        defineWarmingModalProps(error.message, "Ok", () => {
+          signOut();
+          navigator.replace("/");
+        });
+        return;
       }
-      setIsLoading(false);
+
+      defineWarmingModalProps(error.message, "Ok", () => setShowModal(false));
     }
   }
 
@@ -340,6 +365,15 @@ export default function NamesCorrection() {
   return (
     <Container>
       <Header title={"Email Check !"} />
+      <WarningModal
+        showModal={showModal}
+        icon={<Warning size={36} color={defaultTheme.COLORS.PRIMARY} />}
+        text={errorMessage}
+        primaryButtonText={buttonText}
+        secondaryButtonText="Cancel"
+        onConfirm={triggerFunction}
+        onCancel={() => setShowModal(false)}
+      />
       <Content>
         <Modal content={<FormComponent />} />
       </Content>
