@@ -17,7 +17,7 @@ import {
 import { Button } from "@/components/Button";
 import { CustomInput } from "@/components/CustomInput";
 import { TextArea } from "@/components/TextArea";
-import { FileHtml, Key } from "phosphor-react";
+import { FileHtml, Key, Warning } from "phosphor-react";
 
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -25,6 +25,8 @@ import * as yup from "yup";
 import { useEffect, useState } from "react";
 import { zeroBounceApi } from "@/services/api";
 import { ConfigProps } from "@/@types";
+import { WarningModal } from "@/components/WarningModal";
+import { defaultTheme } from "../styles/theme/default";
 
 type ActiveTabType = "apiKeys" | "html";
 
@@ -39,12 +41,14 @@ export default function UserConfig() {
 
   const [activeTab, setActiveTab] = useState<ActiveTabType | string>("apiKeys");
   const [isLoading, setIsLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [triggerFunction, setTriggerFunction] = useState(() => () => {});
+  const [buttonText, setButtonText] = useState("Ok");
 
   const configFormSchema = yup.object({
-    ZBApiKey: yup
-      .string(),
-    openAIApiKey: yup
-      .string(),
+    ZBApiKey: yup.string(),
+    openAIApiKey: yup.string(),
     htmlPattern: yup
       .string()
       .test(
@@ -62,7 +66,6 @@ export default function UserConfig() {
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors },
     setValue,
   } = useForm<ConfigFormData>({
@@ -76,9 +79,9 @@ export default function UserConfig() {
       ? JSON.parse(configString)
       : { apikeys: { zeroBounce: "", openAI: "" }, htmlPattern: "" };
 
-      if (!config.apiKeys) {
-        config.apiKeys = { zeroBounce: "", openAI: "" };
-      }
+    if (!config.apiKeys) {
+      config.apiKeys = { zeroBounce: "", openAI: "" };
+    }
 
     if (activeTab === "apiKeys") {
       config.apiKeys.zeroBounce = ZBApiKey!;
@@ -88,8 +91,22 @@ export default function UserConfig() {
     }
 
     localStorage.setItem("@pcr-translator:config", JSON.stringify(config));
+    defineWarmingModalProps("Config saved successfully", "Ok", () => {
+      setShowModal(false);
+      navigator.push("/menu");
+    });
+  }
+
+  function defineWarmingModalProps(
+    message: string,
+    buttonText: string,
+    functionToTrigger: () => void
+  ) {
+    setModalMessage(message);
+    setButtonText(buttonText);
     setIsLoading(false);
-    alert("Config saved successfully");
+    setShowModal(true);
+    setTriggerFunction(() => () => functionToTrigger());
   }
 
   useEffect(() => {
@@ -101,7 +118,7 @@ export default function UserConfig() {
       setValue("ZBApiKey", configObj.apiKeys.zeroBounce);
       setValue("openAIApiKey", configObj.apiKeys.openAI);
       setValue("htmlPattern", configObj.htmlPattern);
-    } 
+    }
   }, []);
 
   const TabComponent = () => {
@@ -155,6 +172,15 @@ export default function UserConfig() {
   return (
     <Container>
       <Header title={"Account Preferences"} />
+      <WarningModal
+        showModal={showModal}
+        icon={<Warning size={36} color={defaultTheme.COLORS.PRIMARY} />}
+        text={modalMessage}
+        primaryButtonText={buttonText}
+        secondaryButtonText="Close"
+        onConfirm={triggerFunction}
+        onCancel={() => setShowModal(false)}
+      />
       <Content>
         <Modal content={<TabComponent />} />
       </Content>
