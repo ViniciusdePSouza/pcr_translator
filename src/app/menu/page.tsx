@@ -8,23 +8,44 @@ import { useRouter } from "next/navigation";
 import { useUser } from "../hooks/userContext";
 import { LoginApiResponseType } from "@/@types";
 import { useCallback, useEffect, useState } from "react";
+import { WarningModal } from "@/components/WarningModal";
+import { Warning } from "phosphor-react";
+import { defaultTheme } from "../styles/theme/default";
 
 export default function Menu() {
-  const navigator = useRouter(); 
+  const navigator = useRouter();
   const { saveUser, checkExpiredToken, signOut } = useUser();
+  const [showModal, setShowModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [triggerFunction, setTriggerFunction] = useState(() => () => {});
+  const [buttonText, setButtonText] = useState("Proceed");
 
   function navigateToDestinyRoute(route: string) {
     navigator.push(route);
+  }
+
+  function defineWarmingModalProps(
+    message: string,
+    buttonText: string,
+    functionToTrigger: () => void
+  ) {
+    setErrorMessage(message);
+    setButtonText(buttonText);
+    setShowModal(true);
+    setTriggerFunction(() => () => functionToTrigger());
   }
 
   async function checkAccountConfiguration() {
     const config = await localStorage.getItem("@pcr-translator:config");
 
     if (!config) {
-      alert(
-        "Seems like you didn't configure your account preferences yet, please configure it so you can use all the services from our app properly!"
+      defineWarmingModalProps(
+        "Seems like you didn't configure your account preferences yet, please configure it so you can use all the services from our app properly!",
+        "Proceed",
+        () => {
+          navigator.push("/userconfig");
+        }
       );
-      navigateToDestinyRoute("/userconfig");
     }
   }
 
@@ -94,6 +115,15 @@ export default function Menu() {
   return (
     <Container>
       <Header title={"Menu !"} />
+      <WarningModal
+        showModal={showModal}
+        icon={<Warning size={36} color={defaultTheme.COLORS.PRIMARY} />}
+        text={errorMessage}
+        primaryButtonText={buttonText}
+        secondaryButtonText="Cancel"
+        onConfirm={triggerFunction}
+        onCancel={() => setShowModal(false)}
+      />
       <Content>
         <Modal content={<MenuComponent />} />
       </Content>

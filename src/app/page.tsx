@@ -10,10 +10,13 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useForm } from "react-hook-form";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "./hooks/userContext";
 import { login } from "@/services/PCR/loginService";
+import { WarningModal } from "@/components/WarningModal";
+import { Warning } from "phosphor-react";
+import { defaultTheme } from "./styles/theme/default";
 
 const loginFormSchema = yup.object({
   username: yup.string().required(),
@@ -24,6 +27,11 @@ const loginFormSchema = yup.object({
 });
 
 export default function Home() {
+  const [showModal, setShowModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [triggerFunction, setTriggerFunction] = useState(() => () => {});
+  const [buttonText, setButtonText] = useState("Proceed");
+
   const {
     register,
     handleSubmit,
@@ -65,14 +73,25 @@ export default function Home() {
       if (response?.SessionId) {
         router.push("/menu");
       }
-    } catch (error) {
-      alert(error);
+    } catch (error: any) {
+      defineWarmingModalProps(error, "Ok", () => setShowModal(false));
     }
+  }
+
+  function defineWarmingModalProps(
+    message: string,
+    buttonText: string,
+    functionToTrigger: () => void
+  ) {
+    setErrorMessage(message);
+    setButtonText(buttonText);
+    setShowModal(true);
+    setTriggerFunction(() => () => functionToTrigger());
   }
 
   useEffect(() => {
     if (isSubmitting && !isValid && isDirty) {
-      alert("Please fill out the form correctly");
+      defineWarmingModalProps("Please fill out the form correctly", "Ok", () => setShowModal(false));
     }
   }, [errors, isSubmitting, isValid, isDirty]);
 
@@ -100,6 +119,15 @@ export default function Home() {
 
   return (
     <Container>
+      <WarningModal
+        showModal={showModal}
+        icon={<Warning size={36} color={defaultTheme.COLORS.PRIMARY} />}
+        text={errorMessage}
+        primaryButtonText={buttonText}
+        secondaryButtonText="Cancel"
+        onConfirm={triggerFunction}
+        onCancel={() => setShowModal(false)}
+      />
       <Form onSubmit={handleSubmit(handleLogin)}>
         <h1>Login</h1>
         <CustomInput
