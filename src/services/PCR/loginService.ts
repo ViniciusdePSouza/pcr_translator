@@ -9,11 +9,15 @@ export async function login({
   username,
 }: LoginFormData) {
   const resource = "/access-token/";
-  const url =
-    resource +
-    `?Username=${username}&Password=${password}&DatabaseId=${databaseId}&ApiKey=${apiKey}&AppId=${appId}`;
+  const body = {
+    Username: username,
+    Password: password,
+    DatabaseId: databaseId,
+    ApiKey: apiKey,
+    AppId: appId,
+  };
   try {
-    const response = await pcrApi.post(url);
+    const response = await pcrApi.post(resource, body);
 
     return response.data as LoginApiResponseType;
   } catch (error: any) {
