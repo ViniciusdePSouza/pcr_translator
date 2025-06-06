@@ -199,7 +199,7 @@ export default function EmailCheck() {
       setSteps(2);
 
       let emailsBatch: string[] = [];
-      const numberOfLoops = Math.ceil(candidates.length / 200);
+      const numberOfLoops = Math.ceil(candidates.length / 100);
       let zeroBounceApiArray: any = [];
 
       let workEmailsBatch: string[] = [];
@@ -219,8 +219,8 @@ export default function EmailCheck() {
 
       if (numberOfLoops > 1) {
         for (let i = 0; i < numberOfLoops; i++) {
-          const start = 200 * i;
-          const end = Math.min(start + 200, workEmailsBatch.length);
+          const start = 100 * i;
+          const end = Math.min(start + 100, workEmailsBatch.length);
           let workEmailsBatchSliced = workEmailsBatch.slice(start, end);
           let emailsBatchSliced = emailsBatch.slice(start, end);
 
