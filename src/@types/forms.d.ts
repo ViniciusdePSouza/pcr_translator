@@ -21,6 +21,10 @@ export interface CheckEmailsFormDataTrue {
   memo: string;
 }
 
+export interface ActivitiesFormData{
+  targetListCode: string
+}
+
 export interface CorrectNamesFormData {
   targetListCode: string;
 }

@@ -7,7 +7,7 @@ import { MenuOptions } from "./components/MenuOption";
 import { useRouter } from "next/navigation";
 import { useUser } from "../hooks/userContext";
 import { LoginApiResponseType } from "@/@types";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { WarningModal } from "@/components/WarningModal";
 import { Warning } from "phosphor-react";
 import { defaultTheme } from "../styles/theme/default";
@@ -105,6 +105,12 @@ export default function Menu() {
             isReady
             title={"Format Job Description"}
             onClick={() => navigateToDestinyRoute("/formatjobdescription")}
+            tutorialLink=""
+          />
+          <MenuOptions
+            isReady
+            title={"Activities"}
+            onClick={() => navigateToDestinyRoute("/activities")}
             tutorialLink=""
           />
         </MenuWrapper>
