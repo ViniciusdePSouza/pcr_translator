@@ -16,6 +16,8 @@ import { defaultTheme } from "../styles/theme/default";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
+import { fetchPcrRecords } from "@/utils/apiTools";
+import { useUser } from "../hooks/userContext";
 
 const activitiesFormSchema = yup.object({
   targetListCode: yup.string().required(),
@@ -28,8 +30,22 @@ export default function Activities() {
   const [buttonText, setButtonText] = useState("Proceed");
   const [isLoading, setIsLoading] = useState(false);
 
-  function handleActivities(data: ActivitiesFormData){
-    console.log(data)
+  const { user } = useUser();
+
+  async function handleActivities(data: ActivitiesFormData) {
+    setIsLoading(true);
+    try {
+      const response = await fetchPcrRecords(
+        data.targetListCode,
+        ["Candidate.EmailAddress", "CandidateId", "Candidate.CustomFields"],
+        user.SessionId
+      );
+
+      console.log(response.Results);
+    } catch (error) {
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   const {
@@ -54,11 +70,7 @@ export default function Activities() {
             <ErrorMessage>{errors.targetListCode.message}</ErrorMessage>
           )}
 
-          <Button
-            title={"Start"}
-            type="submit"
-            isLoading={isLoading}
-          />
+          <Button title={"Start"} type="submit" isLoading={isLoading} />
         </Form>
       </>
     );
@@ -77,7 +89,7 @@ export default function Activities() {
         onCancel={() => setShowModal(false)}
       />
       <Content>
-        <Modal content={<FormComponent/>} />
+        <Modal content={<FormComponent />} />
       </Content>
     </Container>
   );
