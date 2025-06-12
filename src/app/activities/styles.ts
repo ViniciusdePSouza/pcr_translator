@@ -52,6 +52,14 @@ export const Form = styled.form`
     color: ${({ theme }) => theme.COLORS.WHITE_100};
     margin-bottom: 1.8rem;
   }
+
+  > h2 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    text-align: center;
+    color: ${({ theme }) => theme.COLORS.WHITE_100};
+    margin: 1.2rem 0 -1.2rem 0
+  }
 `;
 
 export const Title = styled.h1`
@@ -63,10 +71,17 @@ export const Title = styled.h1`
   margin-bottom: 1.8rem;
 `;
 
-
 export const ErrorMessage = styled.span`
   color: ${({ theme }) => theme.COLORS.RED};
   font-size: 16px;
   font-weight: 400;
   margin-top: 0.8rem;
+`;
+
+export const DateContainer = styled.div`
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4rem;
 `;

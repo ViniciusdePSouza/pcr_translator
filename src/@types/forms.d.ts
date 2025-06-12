@@ -23,6 +23,8 @@ export interface CheckEmailsFormDataTrue {
 
 export interface ActivitiesFormData{
   targetListCode: string
+  startDate: string,
+  endDate: string
 }
 
 export interface CorrectNamesFormData {

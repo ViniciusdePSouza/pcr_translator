@@ -71,3 +71,35 @@ export async function updateCandidate(
     throw Error(error.response.data.errors);
   }
 }
+
+export async function getCandidateActivities(
+  candidateId: number,
+  sessionId: string,
+  page: number = 1,
+  startDate?: Date,
+  endDate?: Date
+) {
+  const resource = `/candidates/${candidateId}/activities`;
+  const resultsPerPageParam = `?ResultsPerPage=500`;
+  const pageParam = `&Page=${page}`;
+  let timeInterval = "";
+  if (startDate && endDate) {
+    const startISO = startDate.toISOString();
+    const endISO = endDate.toISOString();
+    const query = `Query=ActivityDate ge ${startISO} and ActivityDate le ${endISO}`;
+    timeInterval = `&${query.replace(/ /g, "%20")}`;
+  }
+  const url = resource + resultsPerPageParam + pageParam + timeInterval;
+
+  try {
+    const response = await pcrApi.get(url, {
+      headers: {
+        Authorization: `Bearer ${sessionId}`,
+      },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    throw Error(error.response.data.errors);
+  }
+}

@@ -48,3 +48,19 @@ export interface CandidatesContextProps {
   candidates: CandidatesProps[];
   saveCandidates: (candidates: CandidatesProps[]) => void
 }
+
+export interface ActivitiesProps {
+  CandidateId: number
+  ActivityId: number
+  UserName: string
+  ActivityDate: string
+  ActivityType: string
+  ActivityResult: any
+}
+
+export interface ActivitySummary  {
+  candidateid: number;
+  "first name": string;
+  "last name": string;
+  [key: string]: any;
+};
