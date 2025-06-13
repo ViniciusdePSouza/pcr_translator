@@ -84,6 +84,8 @@ export default function Activities() {
 
       const records = response.Results;
 
+      const allActivityTypes = new Set<string>();
+
       for (const record of records) {
         const activitiesAmount = await getCandidateActivities(
           record.CandidateId,
@@ -105,6 +107,10 @@ export default function Activities() {
             new Date(data.endDate)
           );
 
+          activities.Results.forEach((activity: ActivitiesProps) => {
+            allActivityTypes.add(activity.ActivityType);
+          });
+
           activitiesArray = [...activitiesArray, ...activities.Results];
         }
         const result = summarizeActivities(
@@ -114,10 +120,22 @@ export default function Activities() {
           activitiesArray
         );
 
-        googleSheetRows.push(result)
+        googleSheetRows.push(result);
       }
 
-      console.log("results =>" , googleSheetRows)
+      for (let i = 0; i < googleSheetRows.length; i++) {
+        const row = googleSheetRows[i];
+        const activityTypesArray = Array.from(allActivityTypes);
+
+        for (let j = 0; j < activityTypesArray.length; j++) {
+          const activityType = activityTypesArray[j];
+          if (!(activityType in row)) {
+            row[activityType] = 0;
+          }
+        }
+      }
+
+      console.log("results =>", googleSheetRows);
     } catch (error) {
     } finally {
       setIsLoading(false);
