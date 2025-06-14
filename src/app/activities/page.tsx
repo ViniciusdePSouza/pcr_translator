@@ -5,10 +5,10 @@ import { Header } from "@/components/Header";
 import { Modal } from "@/components/Modal";
 import { WarningModal } from "@/components/WarningModal";
 import { Button } from "@/components/Button";
-import { Target, Warning } from "phosphor-react";
+import { CheckCircle, Target, Warning } from "phosphor-react";
 import { CustomInput } from "@/components/CustomInput";
 
-import { useState } from "react";
+import { ReactElement, useState } from "react";
 
 import {
   Container,
@@ -26,11 +26,14 @@ import * as yup from "yup";
 import { fetchPcrRecords } from "@/utils/apiTools";
 import { useUser } from "../hooks/userContext";
 import { getCandidateActivities } from "@/services/PCR/candidatesService";
+import { google } from "googleapis";
 
 const activitiesFormSchema = yup.object({
   targetListCode: yup.string().required(),
   startDate: yup.string().required(),
   endDate: yup.string().required(),
+  sheetName: yup.string().required(),
+  folderLink: yup.string().required(),
 });
 
 function summarizeActivities(
@@ -63,8 +66,32 @@ export default function Activities() {
   const [triggerFunction, setTriggerFunction] = useState(() => () => {});
   const [buttonText, setButtonText] = useState("Proceed");
   const [isLoading, setIsLoading] = useState(false);
+  const [modalIcon, setModalIcon] = useState<ReactElement | null>(null);
+  const [secondaryButtonText, setSecondaryButtonText] = useState("");
+  const [triggerSecondaryFunction, setTriggerSecondaryFunction] = useState(
+    () => () => {}
+  );
 
   const { user } = useUser();
+
+  function defineWarmingModalProps(
+    message: string,
+    buttonText: string,
+    functionToTrigger: () => void,
+    icon: ReactElement | null,
+    secondaryButtonText?: string,
+    secondaryFunctionsToTrigger?: () => void
+  ) {
+    setErrorMessage(message);
+    setButtonText(buttonText);
+    setShowModal(true);
+    setTriggerFunction(() => () => functionToTrigger());
+    if (secondaryButtonText && secondaryFunctionsToTrigger) {
+      setSecondaryButtonText(secondaryButtonText);
+      setTriggerSecondaryFunction(() => () => secondaryFunctionsToTrigger());
+    }
+    setModalIcon(icon);
+  }
 
   async function handleActivities(data: ActivitiesFormData) {
     setIsLoading(true);
@@ -135,7 +162,43 @@ export default function Activities() {
         }
       }
 
-      console.log("results =>", googleSheetRows);
+      const match = data.folderLink.match(/folders\/([a-zA-Z0-9_-]+)/);
+      const folderId = match?.[1];
+
+      const body = {
+        records: googleSheetRows,
+        folderId,
+        spreadsheetName: data.sheetName,
+      };
+
+      const responseData = await fetch("/api/sheets", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+
+      const responseJson = await responseData.json();
+      const spreadsheetUrl = `https://docs.google.com/spreadsheets/d/${responseJson.spreadsheetId}/edit`;
+
+      if (responseData.ok) {
+        defineWarmingModalProps(
+          "Congratulations, your spreadsheet was successfully generated! Check it out on your google drive",
+          "See Spreadsheet",
+          () => {
+            setShowModal(false);
+            window.open(spreadsheetUrl, "_blank");
+          },
+          <CheckCircle size={40} color={defaultTheme.COLORS.PRIMARY_500} />,
+          "Close",
+          () => {
+            setShowModal(false);
+          }
+        );
+      } else {
+        throw Error(responseJson.message);
+      }
     } catch (error) {
     } finally {
       setIsLoading(false);
@@ -185,6 +248,25 @@ export default function Activities() {
 
           {errors.endDate && (
             <ErrorMessage>{errors.endDate.message}</ErrorMessage>
+          )}
+
+          <CustomInput
+            placeholder={"drive.google/link"}
+            label={"Drive Folder Link"}
+            {...register("folderLink")}
+          />
+
+          {errors.folderLink && (
+            <ErrorMessage>{errors.folderLink.message}</ErrorMessage>
+          )}
+          <CustomInput
+            placeholder={"Some Spreadsheet"}
+            label={"Spreadsheet Name"}
+            {...register("sheetName")}
+          />
+
+          {errors.sheetName && (
+            <ErrorMessage>{errors.sheetName.message}</ErrorMessage>
           )}
 
           <Button title={"Start"} type="submit" isLoading={isLoading} />

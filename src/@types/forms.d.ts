@@ -24,7 +24,9 @@ export interface CheckEmailsFormDataTrue {
 export interface ActivitiesFormData{
   targetListCode: string
   startDate: string,
-  endDate: string
+  endDate: string,
+  sheetName: string,
+  folderLink: string
 }
 
 export interface CorrectNamesFormData {
