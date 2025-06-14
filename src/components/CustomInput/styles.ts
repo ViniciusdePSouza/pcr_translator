@@ -29,6 +29,10 @@ export const Container = styled.div`
     font-size: 1.2rem;
     font-weight: 900;
 
-    padding: .8rem 
+    padding: 0.8rem;
+
+    &::-webkit-calendar-picker-indicator {
+      filter: brightness(0) saturate(100%) invert(100%);
+    }
   }
 `;
