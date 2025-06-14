@@ -1,5 +1,10 @@
 "use client";
-import { ActivitiesFormData, ActivitiesProps, ActivitySummary } from "@/@types";
+import {
+  ActivitiesFormData,
+  ActivitiesProps,
+  ActivitySummary,
+  LoginApiResponseType,
+} from "@/@types";
 
 import { Header } from "@/components/Header";
 import { Modal } from "@/components/Modal";
@@ -8,7 +13,7 @@ import { Button } from "@/components/Button";
 import { CheckCircle, Target, Warning } from "phosphor-react";
 import { CustomInput } from "@/components/CustomInput";
 
-import { ReactElement, useState } from "react";
+import { ReactElement, useEffect, useState } from "react";
 
 import {
   Container,
@@ -26,7 +31,7 @@ import * as yup from "yup";
 import { fetchPcrRecords } from "@/utils/apiTools";
 import { useUser } from "../hooks/userContext";
 import { getCandidateActivities } from "@/services/PCR/candidatesService";
-import { google } from "googleapis";
+import { useRouter } from "next/navigation";
 
 const activitiesFormSchema = yup.object({
   targetListCode: yup.string().required(),
@@ -72,7 +77,8 @@ export default function Activities() {
     () => () => {}
   );
 
-  const { user } = useUser();
+  const { user, saveUser, signOut, checkExpiredToken } = useUser();
+  const navigator = useRouter();
 
   function defineWarmingModalProps(
     message: string,
@@ -111,6 +117,12 @@ export default function Activities() {
 
       const records = response.Results;
 
+      if (records.length === 0) {
+        throw new Error(
+          "No records found on that list, please try another roll up list code"
+        );
+      }
+
       const allActivityTypes = new Set<string>();
 
       for (const record of records) {
@@ -140,6 +152,12 @@ export default function Activities() {
 
           activitiesArray = [...activitiesArray, ...activities.Results];
         }
+
+        if (activitiesArray.length === 0)
+          throw new Error(
+            "No activities on those records, please try another list with some records which contain activities"
+          );
+
         const result = summarizeActivities(
           record.CandidateId,
           record.Candidate.FirstName,
@@ -199,7 +217,27 @@ export default function Activities() {
       } else {
         throw Error(responseJson.message);
       }
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message === "Invalid Session Id") {
+        defineWarmingModalProps(
+          error.message,
+          "Ok",
+          () => {
+            signOut();
+            navigator.replace("/");
+            setShowModal(false);
+          },
+          <Warning size={32} color={defaultTheme.COLORS.PRIMARY_700} />
+        );
+        return;
+      }
+
+      defineWarmingModalProps(
+        error.message,
+        "Ok",
+        () => setShowModal(false),
+        <Warning size={32} color={defaultTheme.COLORS.PRIMARY_700} />
+      );
     } finally {
       setIsLoading(false);
     }
@@ -213,10 +251,28 @@ export default function Activities() {
     resolver: yupResolver(activitiesFormSchema),
   });
 
+  useEffect(() => {
+    const user = localStorage.getItem("@pcr-translator:user");
+
+    if (user) {
+      const userObj: LoginApiResponseType = JSON.parse(user);
+      saveUser(userObj);
+      const loginDate = new Date(userObj.loginDate);
+
+      if (checkExpiredToken(loginDate)) {
+        signOut();
+        navigator.replace("/");
+      }
+    } else {
+      signOut();
+      navigator.replace("/");
+    }
+  }, []);
+
   const FormComponent = () => {
     return (
       <>
-        <Title>Email Checking</Title>
+        <Title>Activities</Title>
         <Form onSubmit={handleSubmit(handleActivities)}>
           <CustomInput
             placeholder={"Target List Code"}
