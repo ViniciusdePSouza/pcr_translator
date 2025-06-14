@@ -25,13 +25,14 @@ import {
 } from "./styles";
 import { defaultTheme } from "../styles/theme/default";
 
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { fetchPcrRecords } from "@/utils/apiTools";
 import { useUser } from "../hooks/userContext";
 import { getCandidateActivities } from "@/services/PCR/candidatesService";
 import { useRouter } from "next/navigation";
+import { format } from "date-fns";
 
 const activitiesFormSchema = yup.object({
   targetListCode: yup.string().required(),
@@ -79,6 +80,19 @@ export default function Activities() {
 
   const { user, saveUser, signOut, checkExpiredToken } = useUser();
   const navigator = useRouter();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    control,
+  } = useForm<ActivitiesFormData>({
+    resolver: yupResolver(activitiesFormSchema),
+  });
+
+  const today = new Date();
+  const todayISO = format(today, "yyyy-MM-dd");
+  const startDate = useWatch({ control, name: "startDate" });
 
   function defineWarmingModalProps(
     message: string,
@@ -243,14 +257,6 @@ export default function Activities() {
     }
   }
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<ActivitiesFormData>({
-    resolver: yupResolver(activitiesFormSchema),
-  });
-
   useEffect(() => {
     const user = localStorage.getItem("@pcr-translator:user");
 
@@ -287,6 +293,7 @@ export default function Activities() {
               placeholder={"Select Interval"}
               label={"From"}
               type="date"
+              max={todayISO}
               {...register("startDate")}
             />
 
@@ -294,6 +301,8 @@ export default function Activities() {
               placeholder={"Select Interval"}
               label={"To"}
               type="date"
+              min={startDate || undefined}
+              max={todayISO}
               {...register("endDate")}
             />
           </DateContainer>
