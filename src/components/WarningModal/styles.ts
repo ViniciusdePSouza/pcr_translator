@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled from "styled-components";
 
 interface ModalContainerProps {
   show: boolean;
@@ -13,10 +13,10 @@ export const ModalContainer = styled.div<ModalContainerProps>`
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgba(0, 0, 0, 0.5); 
+  background: rgba(0, 0, 0, 0.5);
   z-index: 9999;
-  visibility: ${(props) => (props.show ? 'visible' : 'hidden')};
-  opacity: ${(props) => (props.show ? '1' : '0')};
+  visibility: ${(props) => (props.show ? "visible" : "hidden")};
+  opacity: ${(props) => (props.show ? "1" : "0")};
   transition: opacity 0.3s ease, visibility 0.3s ease;
 `;
 
@@ -34,6 +34,7 @@ export const ModalContent = styled.div`
 `;
 
 export const IconContainer = styled.div`
+  width: 100%;
   font-size: 48px;
 `;
 

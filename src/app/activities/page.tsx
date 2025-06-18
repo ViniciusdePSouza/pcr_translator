@@ -10,7 +10,12 @@ import { Header } from "@/components/Header";
 import { Modal } from "@/components/Modal";
 import { WarningModal } from "@/components/WarningModal";
 import { Button } from "@/components/Button";
-import { CheckCircle, Target, Warning } from "phosphor-react";
+import {
+  CheckCircle,
+  MicrosoftExcelLogo,
+  Target,
+  Warning,
+} from "phosphor-react";
 import { CustomInput } from "@/components/CustomInput";
 
 import { ReactElement, useEffect, useState } from "react";
@@ -33,6 +38,7 @@ import { useUser } from "../hooks/userContext";
 import { getCandidateActivities } from "@/services/PCR/candidatesService";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
+import { ProgressBar } from "@/components/ProgressBar";
 
 const activitiesFormSchema = yup.object({
   targetListCode: yup.string().required(),
@@ -77,6 +83,7 @@ export default function Activities() {
   const [triggerSecondaryFunction, setTriggerSecondaryFunction] = useState(
     () => () => {}
   );
+  const [showButtons, setShowButtons] = useState(false);
 
   const { user, saveUser, signOut, checkExpiredToken } = useUser();
   const navigator = useRouter();
@@ -100,7 +107,8 @@ export default function Activities() {
     functionToTrigger: () => void,
     icon: ReactElement | null,
     secondaryButtonText?: string,
-    secondaryFunctionsToTrigger?: () => void
+    secondaryFunctionsToTrigger?: () => void,
+    showButton: boolean = true
   ) {
     setErrorMessage(message);
     setButtonText(buttonText);
@@ -111,6 +119,7 @@ export default function Activities() {
       setTriggerSecondaryFunction(() => () => secondaryFunctionsToTrigger());
     }
     setModalIcon(icon);
+    setShowButtons(showButton);
   }
 
   async function handleActivities(data: ActivitiesFormData) {
@@ -152,6 +161,15 @@ export default function Activities() {
         let activitiesArray: ActivitiesProps[] = [];
 
         for (let i = 1; i <= numberOfLoops; i++) {
+          defineWarmingModalProps(
+            `Retrieving activity data for candidate:\n${record.Candidate.FirstName} ${record.Candidate.LastName}\n\nCurrent progress:\nStep ${i} of ${numberOfLoops}`,
+            "",
+            () => {},
+            <ProgressBar currentStep={i - 1} totalSteps={numberOfLoops} />,
+            undefined,
+            undefined,
+            false
+          );
           const activities = await getCandidateActivities(
             record.CandidateId,
             user.SessionId,
@@ -163,6 +181,18 @@ export default function Activities() {
           activities.Results.forEach((activity: ActivitiesProps) => {
             allActivityTypes.add(activity.ActivityType);
           });
+
+          setShowModal(true);
+
+          defineWarmingModalProps(
+            `Retrieving activity data for candidate:\n${record.Candidate.FirstName} ${record.Candidate.LastName}\n\nCurrent progress:\nStep ${i} of ${numberOfLoops}`,
+            "",
+            () => {},
+            <ProgressBar currentStep={i} totalSteps={numberOfLoops} />,
+            undefined,
+            undefined,
+            false
+          );
 
           activitiesArray = [...activitiesArray, ...activities.Results];
         }
@@ -193,6 +223,19 @@ export default function Activities() {
           }
         }
       }
+
+      defineWarmingModalProps(
+        `Now we are creating your spreadsheet...`,
+        "",
+        () => {},
+        <MicrosoftExcelLogo
+          size={40}
+          color={defaultTheme.COLORS.PRIMARY_500}
+        />,
+        undefined,
+        undefined,
+        false
+      );
 
       const match = data.folderLink.match(/folders\/([a-zA-Z0-9_-]+)/);
       const folderId = match?.[1];
@@ -226,7 +269,8 @@ export default function Activities() {
           "Close",
           () => {
             setShowModal(false);
-          }
+          },
+          true
         );
       } else {
         throw Error(responseJson.message);
@@ -250,7 +294,10 @@ export default function Activities() {
         error.message,
         "Ok",
         () => setShowModal(false),
-        <Warning size={32} color={defaultTheme.COLORS.PRIMARY_700} />
+        <Warning size={32} color={defaultTheme.COLORS.PRIMARY_700} />,
+        undefined,
+        undefined,
+        true
       );
     } finally {
       setIsLoading(false);
@@ -345,12 +392,13 @@ export default function Activities() {
       <Header title={"Activities"} />
       <WarningModal
         showModal={showModal}
-        icon={<Warning size={36} color={defaultTheme.COLORS.PRIMARY} />}
+        icon={modalIcon}
         text={errorMessage}
         primaryButtonText={buttonText}
         secondaryButtonText="Cancel"
         onConfirm={triggerFunction}
         onCancel={() => setShowModal(false)}
+        showButton={showButtons}
       />
       <Content>
         <Modal content={<FormComponent />} />
