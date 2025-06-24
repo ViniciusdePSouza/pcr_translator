@@ -1,6 +1,6 @@
 "use client";
 import { Header } from "@/components/Header";
-import { Container, Content } from "./styles";
+import { Container, Content, TabContent, TabList, TabRoot, TabTrigger } from "./styles";
 import { WarningModal } from "@/components/WarningModal";
 import { useState } from "react";
 import { defaultTheme } from "../styles/theme/default";
@@ -12,7 +12,29 @@ export default function GoogleSheetTool() {
   const [errorMessage, setErrorMessage] = useState("");
   const [buttonText, setButtonText] = useState("");
   const [triggerFunction, setTriggerFunction] = useState(() => () => {});
-  
+    const [activeTab, setActiveTab] = useState("generate");
+
+   const TabComponent = () => {
+    return (
+      <TabRoot
+        defaultValue="generate"
+        value={activeTab}
+        onValueChange={(value: string) => setActiveTab(value)}
+      >
+        <TabList>
+          <TabTrigger value="generate" children="Generate Spreadsheet" />
+          <TabTrigger value="update" children="Update PCR records" />
+        </TabList>
+
+        <TabContent value="generate">
+          <h1>Generating</h1>
+        </TabContent>
+        <TabContent value="update">
+         <h1>Reading</h1>
+        </TabContent>
+      </TabRoot>
+    );
+   }
   return (
     <Container>
       <Header title={"Menu !"} />
@@ -26,7 +48,7 @@ export default function GoogleSheetTool() {
         onCancel={() => setShowModal(false)}
       />
       <Content>
-        <Modal content={<h1>google sheet works! </h1>} />
+        <Modal content={<TabComponent/>} />
       </Content>
     </Container>
   );
