@@ -1,24 +1,28 @@
 import { defaultTheme } from "@/app/styles/theme/default";
 import styled from "styled-components";
 
-export type ButtonVariantColor = "PRIMARY" | "SECONDARY";
+export type ButtonVariantColor = "PRIMARY" | "SECONDARY" | "TERCIARY";
 
 const buttonVariantBackgroundColor = {
   PRIMARY: `${defaultTheme.COLORS.SECONDARY};`,
   SECONDARY: `transparent`,
+  TERCIARY: `transparent`,
 };
 
 const buttonVariantBorder = {
   PRIMARY: `none`,
   SECONDARY: `1px solid ${defaultTheme.COLORS.SECONDARY};`,
+  TERCIARY: `1px solid ${defaultTheme.COLORS.WHITE_100}`,
 };
 const buttonVariantTextColor = {
   PRIMARY: `${defaultTheme.COLORS.WHITE};`,
   SECONDARY: `${defaultTheme.COLORS.SECONDARY};`,
+  TERCIARY: `${defaultTheme.COLORS.WHITE_100}`,
 };
 const buttonVariantTextWeight = {
   PRIMARY: `700`,
   SECONDARY: `400`,
+  TERCIARY: `400`,
 };
 
 export const Container = styled.button<{ variant: ButtonVariantColor }>`

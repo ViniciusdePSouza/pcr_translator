@@ -40,3 +40,8 @@ export interface ConfigProps {
   };
   htmlPattern: string;
 }
+
+export  interface SelectOptionsProps {
+  value: string;
+  label: string;
+}
