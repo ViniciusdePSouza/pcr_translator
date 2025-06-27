@@ -1,4 +1,5 @@
 import { styled } from "styled-components";
+import { DatePicker } from 'rsuite';
 
 export const Content = styled.div`
   width: 100%;
@@ -79,7 +80,7 @@ export const ErrorMessage = styled.span`
 `;
 
 export const DateContainer = styled.div`
-  width: 100%;
+  width: 50%;
   display: flex;
   align-items: center;
   justify-content: center;

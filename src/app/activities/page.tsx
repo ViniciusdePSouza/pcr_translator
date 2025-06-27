@@ -10,15 +10,17 @@ import { Header } from "@/components/Header";
 import { Modal } from "@/components/Modal";
 import { WarningModal } from "@/components/WarningModal";
 import { Button } from "@/components/Button";
+import { CustomInput } from "@/components/CustomInput";
+import { ProgressBar } from "@/components/ProgressBar";
+
 import {
   CheckCircle,
   MicrosoftExcelLogo,
-  Target,
   Warning,
 } from "phosphor-react";
-import { CustomInput } from "@/components/CustomInput";
 
 import { ReactElement, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import {
   Container,
@@ -33,12 +35,14 @@ import { defaultTheme } from "../styles/theme/default";
 import { useForm, useWatch } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
+
 import { fetchPcrRecords } from "@/utils/apiTools";
+
 import { useUser } from "../hooks/userContext";
+
 import { getCandidateActivities } from "@/services/PCR/candidatesService";
-import { useRouter } from "next/navigation";
+
 import { format } from "date-fns";
-import { ProgressBar } from "@/components/ProgressBar";
 
 const activitiesFormSchema = yup.object({
   targetListCode: yup.string().required(),
@@ -196,11 +200,6 @@ export default function Activities() {
 
           activitiesArray = [...activitiesArray, ...activities.Results];
         }
-
-        if (activitiesArray.length === 0)
-          throw new Error(
-            "No activities on those records, please try another list with some records which contain activities"
-          );
 
         const result = summarizeActivities(
           record.CandidateId,

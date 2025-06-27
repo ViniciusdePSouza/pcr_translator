@@ -17,7 +17,6 @@ export const Container = styled.div`
   }
 
   input {
-    all: unset;
     width: 100%;
 
     background-color: ${({ theme }) => theme.COLORS.PRIMARY_500};
@@ -31,8 +30,15 @@ export const Container = styled.div`
 
     padding: 0.8rem;
 
+    outline: none;
+    box-shadow: none;
+
+    appearance: auto;
+    -webkit-appearance: textfield;
+
     &::-webkit-calendar-picker-indicator {
       filter: brightness(0) saturate(100%) invert(100%);
+      cursor: pointer;
     }
   }
 `;
