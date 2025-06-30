@@ -1,8 +1,9 @@
 "use client";
 import {
+  ActivitiesAccumulatorProps,
   ActivitiesFormData,
+  ActivitiesMap,
   ActivitiesProps,
-  ActivitySummary,
   LoginApiResponseType,
 } from "@/@types";
 
@@ -16,6 +17,7 @@ import { ProgressBar } from "@/components/ProgressBar";
 import {
   CheckCircle,
   MicrosoftExcelLogo,
+  SpinnerGap,
   Warning,
 } from "phosphor-react";
 
@@ -43,6 +45,7 @@ import { useUser } from "../hooks/userContext";
 import { getCandidateActivities } from "@/services/PCR/candidatesService";
 
 import { format } from "date-fns";
+import { Dashboard } from "./components/Dashboard";
 
 const activitiesFormSchema = yup.object({
   targetListCode: yup.string().required(),
@@ -51,30 +54,6 @@ const activitiesFormSchema = yup.object({
   sheetName: yup.string().required(),
   folderLink: yup.string().required(),
 });
-
-function summarizeActivities(
-  candidateId: number,
-  firstName: string,
-  lastName: string,
-  activities: ActivitiesProps[]
-) {
-  const result: ActivitySummary = {
-    candidateid: candidateId,
-    "first name": firstName,
-    "last name": lastName,
-  };
-
-  for (const activity of activities) {
-    const type = activity.ActivityType;
-    if (!result[type]) {
-      result[type] = 1;
-    } else {
-      result[type]++;
-    }
-  }
-
-  return result;
-}
 
 export default function Activities() {
   const [showModal, setShowModal] = useState(false);
@@ -88,6 +67,13 @@ export default function Activities() {
     () => () => {}
   );
   const [showButtons, setShowButtons] = useState(false);
+  const [showDashboard, setShowDashboard] = useState(true);
+  const [spreadSheetLink, setSpreadSheetLink] = useState("");
+  const [activities, setActivities] = useState<ActivitiesAccumulatorProps[]>(
+    []
+  );
+  const [recordsAmount, setRecordsAmount] = useState(0);
+  const [recordsWithActivities, setRecordsWithActivities] = useState(0);
 
   const { user, saveUser, signOut, checkExpiredToken } = useUser();
   const navigator = useRouter();
@@ -126,10 +112,22 @@ export default function Activities() {
     setShowButtons(showButton);
   }
 
+  function defineDashProps(
+    recordsAmount: number,
+    recordsWithActivities: number,
+    activities: ActivitiesAccumulatorProps[],
+    spreadSheetLink: string
+  ) {
+    setRecordsAmount(recordsAmount);
+    setRecordsWithActivities(recordsWithActivities);
+    setActivities(activities);
+    setSpreadSheetLink(spreadSheetLink);
+  }
+
   async function handleActivities(data: ActivitiesFormData) {
     setIsLoading(true);
     try {
-      let googleSheetRows = [];
+      let activitiesArray: ActivitiesProps[] = [];
       const response = await fetchPcrRecords(
         data.targetListCode,
         [
@@ -150,8 +148,6 @@ export default function Activities() {
         );
       }
 
-      const allActivityTypes = new Set<string>();
-
       for (const record of records) {
         const activitiesAmount = await getCandidateActivities(
           record.CandidateId,
@@ -162,11 +158,21 @@ export default function Activities() {
         );
 
         const numberOfLoops = Math.ceil(activitiesAmount.TotalRecords / 500);
-        let activitiesArray: ActivitiesProps[] = [];
+
+        if (numberOfLoops === 0)
+          defineWarmingModalProps(
+            `No activity found for the candidate:\n${record.Candidate.FirstName} ${record.Candidate.LastName}`,
+            "",
+            () => {},
+            <SpinnerGap size={40} color={defaultTheme.COLORS.PRIMARY_500} />,
+            undefined,
+            undefined,
+            false
+          );
 
         for (let i = 1; i <= numberOfLoops; i++) {
           defineWarmingModalProps(
-            `Retrieving activity data for candidate:\n${record.Candidate.FirstName} ${record.Candidate.LastName}\n\nCurrent progress:\nStep ${i} of ${numberOfLoops}`,
+            `Retrieving activity data for candidate:\n${record.Candidate.FirstName} ${record.Candidate.LastName}`,
             "",
             () => {},
             <ProgressBar currentStep={i - 1} totalSteps={numberOfLoops} />,
@@ -174,6 +180,7 @@ export default function Activities() {
             undefined,
             false
           );
+
           const activities = await getCandidateActivities(
             record.CandidateId,
             user.SessionId,
@@ -182,14 +189,10 @@ export default function Activities() {
             new Date(data.endDate)
           );
 
-          activities.Results.forEach((activity: ActivitiesProps) => {
-            allActivityTypes.add(activity.ActivityType);
-          });
-
           setShowModal(true);
 
           defineWarmingModalProps(
-            `Retrieving activity data for candidate:\n${record.Candidate.FirstName} ${record.Candidate.LastName}\n\nCurrent progress:\nStep ${i} of ${numberOfLoops}`,
+            `Retrieving activities from candidate:\n${record.Candidate.FirstName} ${record.Candidate.LastName}`,
             "",
             () => {},
             <ProgressBar currentStep={i} totalSteps={numberOfLoops} />,
@@ -200,28 +203,24 @@ export default function Activities() {
 
           activitiesArray = [...activitiesArray, ...activities.Results];
         }
-
-        const result = summarizeActivities(
-          record.CandidateId,
-          record.Candidate.FirstName,
-          record.Candidate.LastName,
-          activitiesArray
-        );
-
-        googleSheetRows.push(result);
       }
 
-      for (let i = 0; i < googleSheetRows.length; i++) {
-        const row = googleSheetRows[i];
-        const activityTypesArray = Array.from(allActivityTypes);
-
-        for (let j = 0; j < activityTypesArray.length; j++) {
-          const activityType = activityTypesArray[j];
-          if (!(activityType in row)) {
-            row[activityType] = 0;
+      const result: ActivitiesAccumulatorProps[] = Object.values(
+        activitiesArray.reduce<ActivitiesMap>((acc, { ActivityType }) => {
+          if (!acc[ActivityType]) {
+            acc[ActivityType] = { ActivityType, count: 0 };
           }
-        }
-      }
+          acc[ActivityType].count++;
+          return acc;
+        }, {})
+      );
+
+      const googleSheetRows = [
+        result.reduce((acc, item) => {
+          acc[item.ActivityType] = item.count;
+          return acc;
+        }, {} as Record<string, number>),
+      ];
 
       defineWarmingModalProps(
         `Now we are creating your spreadsheet...`,
@@ -256,21 +255,18 @@ export default function Activities() {
       const responseJson = await responseData.json();
       const spreadsheetUrl = `https://docs.google.com/spreadsheets/d/${responseJson.spreadsheetId}/edit`;
 
+      console.log("")
+
       if (responseData.ok) {
-        defineWarmingModalProps(
-          "Congratulations, your spreadsheet was successfully generated! Check it out on your google drive",
-          "See Spreadsheet",
-          () => {
-            setShowModal(false);
-            window.open(spreadsheetUrl, "_blank");
-          },
-          <CheckCircle size={40} color={defaultTheme.COLORS.PRIMARY_500} />,
-          "Close",
-          () => {
-            setShowModal(false);
-          },
-          true
+        defineDashProps(
+          records.length,
+          activitiesArray.length,
+          result,
+          spreadsheetUrl
         );
+        setShowDashboard(true)
+        setShowModal(false);
+        setIsLoading(false);
       } else {
         throw Error(responseJson.message);
       }
@@ -400,7 +396,21 @@ export default function Activities() {
         showButton={showButtons}
       />
       <Content>
-        <Modal content={<FormComponent />} />
+        <Modal
+          content={
+            !showDashboard ? (
+              <FormComponent />
+            ) : (
+              <Dashboard
+                recordsAmount={recordsAmount}
+                recordsWithActivities={recordsWithActivities}
+                activities={activities}
+                startOver={() => setShowDashboard(false)}
+                spreadsheetLink={spreadSheetLink}
+              />
+            )
+          }
+        />
       </Content>
     </Container>
   );

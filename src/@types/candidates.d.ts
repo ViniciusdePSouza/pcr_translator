@@ -64,3 +64,10 @@ export interface ActivitySummary  {
   "last name": string;
   [key: string]: any;
 };
+
+export interface ActivitiesAccumulatorProps {
+  ActivityType: string
+  count: number
+}
+
+export type ActivitiesMap = Record<string, ActivitiesAccumulatorProps>;
