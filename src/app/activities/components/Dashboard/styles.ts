@@ -7,6 +7,12 @@ export const Container = styled.div`
 
   padding: 1.2rem;
   gap: 0.8rem;
+
+  h1 {
+    text-align: center;
+    color: ${({ theme }) => theme.COLORS.GRAY_500};
+    font-size: 2.4rem;
+  }
 `;
 
 export const CardsWrapper = styled.div`
@@ -17,4 +23,23 @@ export const CardsWrapper = styled.div`
   margin-top: 2rem;
 `;
 
+export const SubtitleInfo = styled.div`
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.6rem;
 
+  h3 {
+    color: ${({ theme }) => theme.COLORS.GRAY_100};
+   font-size: 1.2rem ;
+  }
+`;
+
+export const Divisor = styled.div`
+width: 5px;
+height: 5px;
+border-radius: 100%;
+
+background-color: ${({ theme }) => theme.COLORS.GRAY_100};
+`

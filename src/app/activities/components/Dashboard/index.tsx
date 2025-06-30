@@ -1,5 +1,5 @@
 "use client";
-import { CardsWrapper, Container } from "./styles";
+import { CardsWrapper, Container, Divisor, SubtitleInfo } from "./styles";
 import { ExibitionCard } from "./ExibitionCard";
 import { Button } from "@/components/Button";
 import { ActivitiesAccumulatorProps } from "@/@types";
@@ -22,15 +22,17 @@ export function Dashboard({
   return (
     <Container>
       <h1>Activities Dashboard</h1>
-
-      <h3>
-        <strong>Numbers of Records on the list: </strong>
-        {recordsAmount}
-      </h3>
-      <h3>
-        <strong>Numbers of Records which contained activities records: </strong>
-        {recordsWithActivities}
-      </h3>
+      <SubtitleInfo>
+        <h3>
+          {recordsAmount}
+          <strong> records on the list </strong>
+        </h3>
+        <Divisor/>
+        <h3>
+          {recordsWithActivities}
+          <strong> contain activities</strong>
+        </h3>
+      </SubtitleInfo>
 
       <CardsWrapper>
         {activities.map((item: ActivitiesAccumulatorProps) => (
@@ -46,7 +48,7 @@ export function Dashboard({
         style={{
           display: "flex",
           alignItems: "center",
-          gap: "0.8rem",
+          gap: "2.4rem",
         }}
       >
         <Button

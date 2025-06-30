@@ -14,12 +14,7 @@ import { Button } from "@/components/Button";
 import { CustomInput } from "@/components/CustomInput";
 import { ProgressBar } from "@/components/ProgressBar";
 
-import {
-  CheckCircle,
-  MicrosoftExcelLogo,
-  SpinnerGap,
-  Warning,
-} from "phosphor-react";
+import { MicrosoftExcelLogo, SpinnerGap, Warning } from "phosphor-react";
 
 import { ReactElement, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -67,11 +62,9 @@ export default function Activities() {
     () => () => {}
   );
   const [showButtons, setShowButtons] = useState(false);
-  const [showDashboard, setShowDashboard] = useState(true);
+  const [showDashboard, setShowDashboard] = useState(false);
   const [spreadSheetLink, setSpreadSheetLink] = useState("");
-  const [activities, setActivities] = useState<ActivitiesAccumulatorProps[]>(
-    []
-  );
+  const [activities, setActivities] = useState<ActivitiesAccumulatorProps[]>([]);
   const [recordsAmount, setRecordsAmount] = useState(0);
   const [recordsWithActivities, setRecordsWithActivities] = useState(0);
 
@@ -128,6 +121,7 @@ export default function Activities() {
     setIsLoading(true);
     try {
       let activitiesArray: ActivitiesProps[] = [];
+      let recordsWithActivitiesCounter = 0
       const response = await fetchPcrRecords(
         data.targetListCode,
         [
@@ -171,6 +165,7 @@ export default function Activities() {
           );
 
         for (let i = 1; i <= numberOfLoops; i++) {
+          recordsWithActivitiesCounter++
           defineWarmingModalProps(
             `Retrieving activity data for candidate:\n${record.Candidate.FirstName} ${record.Candidate.LastName}`,
             "",
@@ -255,16 +250,14 @@ export default function Activities() {
       const responseJson = await responseData.json();
       const spreadsheetUrl = `https://docs.google.com/spreadsheets/d/${responseJson.spreadsheetId}/edit`;
 
-      console.log("")
-
       if (responseData.ok) {
         defineDashProps(
           records.length,
-          activitiesArray.length,
+          recordsWithActivitiesCounter,
           result,
           spreadsheetUrl
         );
-        setShowDashboard(true)
+        setShowDashboard(true);
         setShowModal(false);
         setIsLoading(false);
       } else {
@@ -398,6 +391,7 @@ export default function Activities() {
       <Content>
         <Modal
           content={
+            
             !showDashboard ? (
               <FormComponent />
             ) : (
