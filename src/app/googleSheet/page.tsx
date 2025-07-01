@@ -16,7 +16,7 @@ import {
   TabTrigger,
 } from "./styles";
 import { WarningModal } from "@/components/WarningModal";
-import { ReactElement, useState } from "react";
+import { ReactElement, useEffect, useState } from "react";
 import { defaultTheme } from "../styles/theme/default";
 import { CheckCircle, Warning } from "phosphor-react";
 import { Modal } from "@/components/Modal";
@@ -32,10 +32,16 @@ import {
   companiesFields,
   positionsFields,
 } from "../utils/constants";
-import { SelectOptionsProps } from "@/@types";
+import {
+  CandidateGenerated,
+  LoginApiResponseType,
+  PositionsGenerated,
+  SelectOptionsProps,
+} from "@/@types";
 import { SingleValue } from "react-select";
 import { getRollUpListsRecords } from "@/services/PCR/rollupService";
 import { useUser } from "../hooks/userContext";
+import { useRouter } from "next/navigation";
 
 export default function GoogleSheetTool() {
   const [isLoading, setIsLoading] = useState(false);
@@ -59,6 +65,7 @@ export default function GoogleSheetTool() {
   const [modalIcon, setModalIcon] = useState<ReactElement | null>(null);
 
   const { user, saveUser, signOut, checkExpiredToken } = useUser();
+  const navigator = useRouter();
 
   const manageSpreadsheetSchema = yup.object({
     targetListCode: yup
@@ -131,6 +138,12 @@ export default function GoogleSheetTool() {
     }
   }
 
+  const isCandidate = (record: any): record is CandidateGenerated =>
+    "CandidateId" in record;
+
+  const isPosition = (record: any): record is PositionsGenerated =>
+    "JobId" in record;
+
   function handleWhichSheetToRead(
     selectedOption: SingleValue<SelectOptionsProps>
   ) {
@@ -156,6 +169,11 @@ export default function GoogleSheetTool() {
     setModalIcon(icon);
   }
 
+  function saveUserOnStorage(user: LoginApiResponseType) {
+    localStorage.setItem("@pcr-translator:user", JSON.stringify(user));
+    saveUser(user);
+  }
+
   async function fetchPcrRecords(
     listCode: string,
     sessionId: string,
@@ -176,6 +194,36 @@ export default function GoogleSheetTool() {
       return response.data;
     } catch (error: any) {
       throw Error(error.message);
+    }
+  }
+
+  async function getSheets(spreadsheetId: string) {
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/getsheets", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          spreadsheetId,
+        }),
+      });
+
+      const jsonResponse = await response.json();
+
+      const options = jsonResponse.map((sheet: any) => {
+        return {
+          value: sheet.properties.title,
+          label: sheet.properties.title,
+        };
+      });
+
+      setOptions(options);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -502,6 +550,40 @@ export default function GoogleSheetTool() {
   async function handleReadSpreadsheetForm({
     spreadsheetUrl,
   }: ManageSpreadsheetSchemaType) {}
+
+  useEffect(() => {
+    const subscription = watch((value) => {
+      const spreadsheetUrl = value.spreadsheetUrl;
+      if (spreadsheetUrl) {
+        const match = spreadsheetUrl.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+        const spreadsheetId = match?.[1];
+        if (spreadsheetId) {
+          getSheets(spreadsheetId);
+        }
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [watch]);
+
+  // useEffect(() => {
+  //   const user = localStorage.getItem("@scotts-manager:user");
+
+  //   if (user) {
+  //     const userObj: LoginApiResponseType = JSON.parse(user);
+  //     saveUserOnStorage(userObj);
+
+  //     const loginDate = new Date(userObj.loginDate);
+
+  //     if (checkExpiredToken(loginDate)) {
+  //       signOut();
+  //       navigator.replace("/");
+  //     }
+  //   } else {
+  //     signOut();
+  //     navigator.replace("/");
+  //   }
+  // }, []);
 
   const GenerateFormComponent = () => {
     return (
