@@ -34,9 +34,10 @@ export async function createRollUpList(
 export async function getRollUpListsRecords(
   listCode: string,
   fieldParams: string[],
-  sessionId: string
+  sessionId: string,
+  service: string
 ) {
-  const resource = "/CandidatesV2/RollupLists";
+  const resource = `/${service}V2/RollupLists/`;
   const queryParam = "?Query=";
   const code = `Code%20eq%20${listCode}`;
   const resultsPerPageParam = `&ResultsPerPage=500`;

@@ -16,9 +16,9 @@ import {
   TabTrigger,
 } from "./styles";
 import { WarningModal } from "@/components/WarningModal";
-import { useState } from "react";
+import { ReactElement, useState } from "react";
 import { defaultTheme } from "../styles/theme/default";
-import { Warning } from "phosphor-react";
+import { CheckCircle, Warning } from "phosphor-react";
 import { Modal } from "@/components/Modal";
 import { Button } from "@/components/Button";
 import { CustomInput } from "@/components/CustomInput";
@@ -34,6 +34,8 @@ import {
 } from "../utils/constants";
 import { SelectOptionsProps } from "@/@types";
 import { SingleValue } from "react-select";
+import { getRollUpListsRecords } from "@/services/PCR/rollupService";
+import { useUser } from "../hooks/userContext";
 
 export default function GoogleSheetTool() {
   const [isLoading, setIsLoading] = useState(false);
@@ -50,6 +52,13 @@ export default function GoogleSheetTool() {
   >([]);
   const [options, setOptions] = useState<SelectOptionsProps[]>([]);
   const [range, setRange] = useState("");
+  const [secondaryButtonText, setSecondaryButtonText] = useState("");
+  const [triggerSecondaryFunction, setTriggerSecondaryFunction] = useState(
+    () => () => {}
+  );
+  const [modalIcon, setModalIcon] = useState<ReactElement | null>(null);
+
+  const { user, saveUser, signOut, checkExpiredToken } = useUser();
 
   const manageSpreadsheetSchema = yup.object({
     targetListCode: yup
@@ -128,11 +137,367 @@ export default function GoogleSheetTool() {
     if (selectedOption) setRange(selectedOption.value);
   }
 
+  function defineWarmingModalProps(
+    message: string,
+    buttonText: string,
+    functionToTrigger: () => void,
+    icon: ReactElement | null,
+    secondaryButtonText?: string,
+    secondaryFunctionsToTrigger?: () => void
+  ) {
+    setErrorMessage(message);
+    setButtonText(buttonText);
+    setShowModal(true);
+    setTriggerFunction(() => () => functionToTrigger());
+    if (secondaryButtonText && secondaryFunctionsToTrigger) {
+      setSecondaryButtonText(secondaryButtonText);
+      setTriggerSecondaryFunction(() => () => secondaryFunctionsToTrigger());
+    }
+    setModalIcon(icon);
+  }
+
+  async function fetchPcrRecords(
+    listCode: string,
+    sessionId: string,
+    fields: string[],
+    service: string
+  ) {
+    try {
+      const response = await getRollUpListsRecords(
+        listCode,
+        fields,
+        sessionId,
+        service
+      );
+
+      if (!response)
+        throw new Error("No records found, please try another rollup list Id");
+
+      return response.data;
+    } catch (error: any) {
+      throw Error(error.message);
+    }
+  }
+
   async function handleGenerateSpreadSheetForm({
     spreadsheetName,
     folderLink,
     targetListCode,
-  }: ManageSpreadsheetSchemaType) {}
+  }: ManageSpreadsheetSchemaType) {
+    try {
+      setIsLoading(true);
+      if (!targetListCode || !folderLink || !spreadsheetName)
+        throw new Error("Fields are required");
+
+      const fieldsToFetch = fieldsToUse;
+
+      if (fieldsToFetch.length === 0) {
+        throw new Error("Please select fields to fetch from the list");
+      }
+
+      if (
+        customFieldsForSpreadsheet.length > 0 &&
+        !customFieldsForSpreadsheet.some((field) =>
+          [
+            "Candidate.CustomFields",
+            "Company.CustomFields",
+            "Positions.CustomFields",
+          ].includes(field)
+        )
+      ) {
+        switch (radioValue) {
+          case "Candidates":
+            fieldsToFetch.push("Candidate.CustomFields");
+            break;
+          case "Companies":
+            fieldsToFetch.push("Company.CustomFields");
+            break;
+          case "Positions":
+            fieldsToFetch.push("Position.CustomFields");
+            break;
+          default:
+            break;
+        }
+      }
+
+      const response = await fetchPcrRecords(
+        targetListCode,
+        user.SessionId,
+        fieldsToFetch,
+        radioValue
+      );
+
+      if (response.Results.length === 0)
+        throw new Error("No records found, please try another rollup list Id");
+
+      const records = response.Results;
+      const match = folderLink.match(/folders\/(.*?)\?/);
+      const folderId = match?.[1];
+
+      if (!folderId) {
+        throw new Error(
+          "Folder not found. Please make sure you have the correct folder link"
+        );
+      }
+
+      records.forEach((item: any, index: number) => {
+        switch (radioValue) {
+          case "Candidates":
+            let companyName;
+            let companyId;
+            if (item.Candidate.Company) {
+              companyName = item.Candidate.Company.CompanyName ?? "";
+              companyId = item.Candidate.Company.CompanyId ?? "";
+            }
+            if (companyId) item.Candidate.CompanyId = companyId;
+
+            if (companyName) item.Candidate.CompanyName = companyName;
+
+            const customFields = item.Candidate.CustomFields;
+
+            if (customFields) {
+              const customFieldsMap = new Map(
+                item.Candidate.CustomFields.map(
+                  (field: { FieldName: string; Value: string[] }) => [
+                    field.FieldName.toLowerCase(),
+                    field.Value.join(" | "),
+                  ]
+                )
+              );
+
+              customFieldsForSpreadsheet.forEach((fieldName) => {
+                const key = fieldName.toLowerCase();
+                const formattedKey = `C* ${fieldName}`;
+
+                item.Candidate[formattedKey] = customFieldsMap.get(key) ?? "";
+              });
+            }
+
+            delete item.Candidate.CustomFields;
+            delete item.Candidate.Company;
+
+            break;
+          case "Companies":
+            const customFieldsCompanies = item.Company.CustomFields;
+            let annualRevenue = "";
+
+            if (item.Company.AnnualRevenue) {
+              const currencyCode =
+                typeof item.Company.AnnualRevenue.CurrencyCode === "string"
+                  ? item.Company.AnnualRevenue.CurrencyCode
+                  : "";
+
+              const value =
+                typeof item.Company.AnnualRevenue.Value === "number"
+                  ? item.Company.AnnualRevenue.Value.toString()
+                  : "";
+
+              annualRevenue = `${currencyCode} => ${value}`;
+            }
+
+            if (customFieldsCompanies) {
+              const customFieldsMap = new Map(
+                item.Company.CustomFields.map(
+                  (field: { FieldName: string; Value: string[] }) => [
+                    field.FieldName.toLowerCase(),
+                    field.Value.join(" | "),
+                  ]
+                )
+              );
+
+              customFieldsForSpreadsheet.forEach((fieldName) => {
+                const key = fieldName.toLowerCase();
+                const formattedKey = `C* ${fieldName}`;
+
+                item.Company[formattedKey] = customFieldsMap.get(key) ?? "";
+              });
+            }
+
+            delete item.Company.CustomFields;
+            item.Company.AnnualRevenue = annualRevenue;
+
+            break;
+          case "Positions":
+            let companyNamePosition;
+
+            if (item.Position.Company) {
+              companyNamePosition = item.Position.Company.CompanyName ?? "";
+            }
+
+            const customFieldsPositions = item.Position.CustomFields;
+
+            let maxSalary = "";
+            let minSalary = "";
+
+            if (item.Position.MaxSalary) {
+              maxSalary = `${item.Position.MaxSalary.CurrencyCode} => ${item.Position.MaxSalary.Value}`;
+            }
+            if (item.Position.MinSalary) {
+              minSalary = `${item.Position.MinSalary.CurrencyCode} => ${item.Position.MinSalary.Value}`;
+            }
+
+            if (customFieldsPositions) {
+              const customFieldsMap = new Map(
+                item.Position.CustomFields.map(
+                  (field: { FieldName: string; Value: string[] }) => [
+                    field.FieldName.toLowerCase(),
+                    field.Value.join(" | "),
+                  ]
+                )
+              );
+
+              customFieldsForSpreadsheet.forEach((fieldName) => {
+                const key = fieldName.toLowerCase();
+                const formattedKey = `C* ${fieldName}`;
+
+                item.Position[formattedKey] = customFieldsMap.get(key) ?? "";
+              });
+            }
+
+            item.Position.MaxSalary = maxSalary;
+            item.Position.MinSalary = minSalary;
+            item.Position.CompanyName = companyNamePosition;
+            delete item.Position.CustomFields;
+            delete item.Position.Company;
+
+            break;
+
+          default:
+            break;
+        }
+      });
+
+      const formattedRecords = records.map((record: any) => {
+        switch (radioValue) {
+          case "Candidates": {
+            const formattedRecord: any = {
+              CandidateId: record.Candidate.CandidateId,
+              FirstName: record.Candidate.FirstName,
+              LastName: record.Candidate.LastName,
+              CompanyName: record.Candidate.CompanyName,
+              CompanyId: record.Candidate.CompanyId,
+              Title: record.Candidate.Title,
+              City: record.Candidate.City,
+              State: record.Candidate.State,
+              PostalCode: record.Candidate.PostalCode,
+              Country: record.Candidate.Country,
+              MobilePhone: record.Candidate.MobilePhone,
+              HomePhone: record.Candidate.HomePhone,
+              WorkPhone: record.Candidate.WorkPhone,
+              EmailAddress: record.Candidate.EmailAddress,
+            };
+
+            customFieldsForSpreadsheet.forEach((fieldName) => {
+              const formattedKey = `C* ${fieldName}`;
+              formattedRecord[formattedKey] = record.Candidate[formattedKey];
+            });
+
+            return formattedRecord;
+          }
+
+          case "Companies": {
+            const formattedRecord: any = {
+              CompanyId: record.Company.CompanyId,
+              CompanyName: record.Company.CompanyName,
+              Address: record.Company.Address,
+              City: record.Company.City,
+              State: record.Company.State,
+              PostalCode: record.Company.PostalCode,
+              Country: record.Company.Country,
+              Phone: record.Company.Phone,
+              EmailWWWAddress: record.Company.EmailWWWAddress,
+              Industry: record.Company.Industry,
+              Specialty: record.Company.Specialty,
+              AnnualRevenue: record.Company.AnnualRevenue,
+              Details: record.Company.Details,
+              CustomFields: record.Company.CustomFields,
+            };
+
+            customFieldsForSpreadsheet.forEach((fieldName) => {
+              const formattedKey = `C* ${fieldName}`;
+              formattedRecord[formattedKey] = record.Company[formattedKey];
+            });
+
+            return formattedRecord;
+          }
+          case "Positions": {
+            const formattedRecord: any = {
+              JobId: record.Position.JobId,
+              PositionId: record.Position.PositionId,
+              Status: record.Position.Status,
+              CompanyName: record.Position.CompanyName,
+              Title: record.Position.JobTitle,
+              ClientJobTitle: record.Position.ClientJobTitle,
+              Industry: record.Position.Industry,
+              Specialty: record.Position.Specialty,
+              City: record.Position.City,
+              State: record.Position.State,
+              Country: record.Position.Country,
+              MinYearsExp: record.Position.MinYearsExp,
+              MaxYearsExp: record.Position.MaxYearsExp,
+              MaxSalary: record.Position.MaxSalary,
+              MinSalary: record.Position.MinSalary,
+              FeePercentage: record.Position.FeePercentage,
+              Keywords: record.Position.Keywords,
+              DatePosted: record.Position.DatePosted,
+              WhyOpen: record.Position.WhyOpen,
+              Department: record.Position.Department,
+              UserName: record.Position.UserName,
+            };
+
+            customFieldsForSpreadsheet.forEach((fieldName) => {
+              const formattedKey = `C* ${fieldName}`;
+              formattedRecord[formattedKey] = record.Position[formattedKey];
+            });
+
+            return formattedRecord;
+          }
+        }
+      });
+
+      const body = {
+        records: formattedRecords,
+        folderId,
+        spreadsheetName,
+      };
+
+      const responseData = await fetch("/api/sheets", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+
+      const responseJson = await responseData.json();
+      const spreadsheetUrl = `https://docs.google.com/spreadsheets/d/${responseJson.spreadsheetId}/edit`;
+
+      if (responseData.ok) {
+        defineWarmingModalProps(
+          "Congratulations, your spreadsheet was successfully generated! Check it out on your google drive",
+          "See Spreadsheet",
+          () => {
+            setShowModal(false);
+            window.open(spreadsheetUrl, "_blank");
+          },
+          <CheckCircle size={40} color={defaultTheme.COLORS.PRIMARY_500} />,
+          "Close",
+          () => setShowModal(false)
+        );
+      } else {
+        throw Error(responseJson.message);
+      }
+    } catch (error: any) {
+      defineWarmingModalProps(
+        error.message,
+        "Ok",
+        () => setShowModal(false),
+        <Warning size={32} color={defaultTheme.COLORS.PRIMARY_700} />
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   async function handleReadSpreadsheetForm({
     spreadsheetUrl,

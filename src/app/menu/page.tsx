@@ -113,12 +113,12 @@ export default function Menu() {
             onClick={() => navigateToDestinyRoute("/activities")}
             tutorialLink=""
           />
-          {/* <MenuOptions
+          <MenuOptions
             isReady
             title={"GoogleSheet"}
             onClick={() => navigateToDestinyRoute("/googleSheet")}
             tutorialLink=""
-          /> */}
+          />
         </MenuWrapper>
       </>
     );
