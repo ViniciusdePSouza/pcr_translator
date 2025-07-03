@@ -72,6 +72,26 @@ export async function updateCandidate(
   }
 }
 
+export async function updateRecord(
+  sessionId: string,
+  body: any,
+  recordId: number,
+  service: string
+) {
+  const resource = `/${service}/${recordId}`;
+
+  try {
+    const response = await pcrApi.put(resource, body, {
+      headers: {
+        Authorization: `Bearer ${sessionId}`,
+      },
+    });
+    return response;
+  } catch (error: any) {
+    throw Error(error.response.data.errors);
+  }
+}
+
 export async function getCandidateActivities(
   candidateId: number,
   sessionId: string,

@@ -30,6 +30,7 @@ import { SelectFields } from "@/components/SelectFields";
 import {
   candidatesFields,
   companiesFields,
+  CompanyGenerated,
   positionsFields,
 } from "../utils/constants";
 import {
@@ -42,6 +43,10 @@ import { SingleValue } from "react-select";
 import { getRollUpListsRecords } from "@/services/PCR/rollupService";
 import { useUser } from "../hooks/userContext";
 import { useRouter } from "next/navigation";
+import {
+  updateCandidate,
+  updateRecord,
+} from "@/services/PCR/candidatesService";
 
 export default function GoogleSheetTool() {
   const [isLoading, setIsLoading] = useState(false);
@@ -225,6 +230,27 @@ export default function GoogleSheetTool() {
     } finally {
       setIsLoading(false);
     }
+  }
+
+  function extractAndTransformCustomFields(body: Record<string, any>) {
+    const customFieldsBody: Record<string, any> = {};
+    const transformedCustomFields: { FieldName: string; Value: string[] }[] =
+      [];
+
+    Object.keys(body).forEach((key) => {
+      if (key.startsWith("C* ")) {
+        customFieldsBody[key] = body[key];
+        if (body[key]) {
+          transformedCustomFields.push({
+            FieldName: key.replace("C* ", ""),
+            Value: body[key].split(" | "),
+          });
+        }
+        delete body[key];
+      }
+    });
+
+    return { transformedCustomFields };
   }
 
   async function handleGenerateSpreadSheetForm({
@@ -547,9 +573,174 @@ export default function GoogleSheetTool() {
     }
   }
 
+  async function updatePerson(
+    record: CandidateGenerated | CompanyGenerated | PositionsGenerated,
+    sessionId: string
+  ) {
+    const body: Record<string, any> = {};
+    let idToUse;
+    let service;
+
+    Object.entries(record).forEach(([key, value]) => {
+      body[key] = value ?? "";
+    });
+
+    if (isCandidate(record)) {
+      if (!record.CandidateId)
+        throw new Error(
+          "Please insert a CandidateId column, only with that we can correctly update the data in pcr system"
+        );
+
+      if (record.CompanyName) {
+        body.Company = {
+          CompanyId: record.CompanyId,
+          CompanyName: record.CompanyName,
+        };
+      }
+
+      const { transformedCustomFields } = extractAndTransformCustomFields(body);
+
+      body.CustomFields = transformedCustomFields;
+
+      delete body.CompanyName;
+      delete body.CompanyId;
+
+      idToUse = record.CandidateId;
+      service = "candidatesV2";
+    } else if (isPosition(record)) {
+      if (!record.JobId)
+        throw new Error(
+          "Please insert a JobId column, only with that we can correctly update the data in pcr system"
+        );
+
+      const arrayMinSalary = body.MinSalary.split(" => ");
+      const arrayMaxSalary = body.MaxSalary.split(" => ");
+      const companyObj = {
+        CompanyId: 0,
+        CompanyName: record.CompanyName,
+      };
+
+      if (record.CompanyName) {
+        body.Company = companyObj;
+      }
+
+      body.MinSalary = {
+        CurrencyCode: arrayMinSalary[0],
+        Value: arrayMinSalary[1],
+      };
+      body.MaxSalary = {
+        CurrencyCode: arrayMaxSalary[0],
+        Value: arrayMaxSalary[1],
+      };
+
+      const { transformedCustomFields } = extractAndTransformCustomFields(body);
+
+      body.CustomFields = transformedCustomFields;
+
+      idToUse = record.JobId;
+      service = "positionsV2";
+    } else {
+      let annualRevenue;
+      if (!record.CompanyId)
+        throw new Error(
+          "Please insert a company id column, only with that we can correctly update the data in pcr system"
+        );
+
+      if (record.AnnualRevenue) {
+        annualRevenue = record.AnnualRevenue.split(" => ");
+
+        body.AnnualRevenue = {
+          CurrencyCode: annualRevenue[0],
+          Value: Number(annualRevenue[1]),
+        };
+      } else {
+        delete body.AnnualRevenue;
+      }
+
+      const { transformedCustomFields } = extractAndTransformCustomFields(body);
+
+      body.CustomFields = transformedCustomFields;
+      idToUse = record.CompanyId;
+      service = "companiesV2";
+    }
+
+    try {
+      const response = await updateRecord(
+        sessionId,
+        body,
+        Number(idToUse),
+        service!
+      );
+
+      return response;
+    } catch (error: any) {
+      throw error.message;
+    }
+  }
+
+  async function updateAllRecords(
+    records: CandidateGenerated[] | CompanyGenerated[] | PositionsGenerated[],
+    sessionId: string
+  ) {
+    try {
+      const reqArray = records.map((records) =>
+        updatePerson(records, sessionId)
+      );
+      await Promise.all(reqArray);
+    } catch (error: any) {
+      throw new Error(error);
+    }
+  }
+
   async function handleReadSpreadsheetForm({
     spreadsheetUrl,
-  }: ManageSpreadsheetSchemaType) {}
+  }: ManageSpreadsheetSchemaType) {
+    try {
+      setIsLoading(true);
+
+      if (!spreadsheetUrl) throw new Error("Spreadsheet Url is missing");
+
+      const match = spreadsheetUrl.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+      const spreadsheetId = match?.[1];
+
+      const data = await fetch("/api/readsheet", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          spreadsheetId,
+          range,
+        }),
+      });
+
+      const dataJson = await data.json();
+
+      if (dataJson.message) throw Error(dataJson.message);
+
+      await updateAllRecords(dataJson, user.SessionId);
+
+      if (data.ok) {
+        defineWarmingModalProps(
+          "Congratulations, your spreadsheet was successfully generated! Check it out on your google drive",
+          "OK",
+          () => setShowModal(false),
+          <CheckCircle size={40} color={defaultTheme.COLORS.PRIMARY_500} />
+        );
+      } else {
+        throw Error(dataJson.message);
+      }
+    } catch (error: any) {
+      defineWarmingModalProps(
+        error.message ?? "Something went wrong please try again later",
+        "Ok",
+        () => setShowModal(false),
+        <Warning size={32} color={defaultTheme.COLORS.PRIMARY_700} />
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   useEffect(() => {
     const subscription = watch((value) => {
@@ -565,25 +756,6 @@ export default function GoogleSheetTool() {
 
     return () => subscription.unsubscribe();
   }, [watch]);
-
-  // useEffect(() => {
-  //   const user = localStorage.getItem("@scotts-manager:user");
-
-  //   if (user) {
-  //     const userObj: LoginApiResponseType = JSON.parse(user);
-  //     saveUserOnStorage(userObj);
-
-  //     const loginDate = new Date(userObj.loginDate);
-
-  //     if (checkExpiredToken(loginDate)) {
-  //       signOut();
-  //       navigator.replace("/");
-  //     }
-  //   } else {
-  //     signOut();
-  //     navigator.replace("/");
-  //   }
-  // }, []);
 
   const GenerateFormComponent = () => {
     return (
