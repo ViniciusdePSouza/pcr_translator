@@ -4,10 +4,11 @@ import { createRollUpList, getRollUpListsRecords, insertRecordOnRollUpList } fro
 export async function fetchPcrRecords(
   listCode: string,
   fields: string[],
-  sessionId: string
+  sessionId: string,
+  service: string = "candidates"
 ) {
   try {
-    const response = await getRollUpListsRecords(listCode, fields, sessionId);
+    const response = await getRollUpListsRecords(listCode, fields, sessionId, service);
 
     return response!.data;
   } catch (error: any) {
