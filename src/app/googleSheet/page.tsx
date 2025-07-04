@@ -613,6 +613,8 @@ export default function GoogleSheetTool() {
           "Please insert a JobId column, only with that we can correctly update the data in pcr system"
         );
 
+        
+
       const arrayMinSalary = body.MinSalary.split(" => ");
       const arrayMaxSalary = body.MaxSalary.split(" => ");
       const companyObj = {
