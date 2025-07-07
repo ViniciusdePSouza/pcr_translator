@@ -61,7 +61,6 @@ export function Dashboard({
           title={"See Spreadsheet"}
           isLoading={false}
           onClick={() => {
-            startOver();
             window.open(spreadsheetLink, "_blank");
           }}
         />

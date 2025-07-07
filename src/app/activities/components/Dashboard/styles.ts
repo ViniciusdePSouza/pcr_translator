@@ -21,6 +21,12 @@ export const CardsWrapper = styled.div`
   grid-template-columns: repeat(3, 1fr);
   gap: 0.8rem;
   margin-top: 2rem;
+
+  max-height: 40rem;
+  overflow-y: auto;
+
+  scrollbar-width: thin;
+  scrollbar-color: ${({ theme }) => theme.COLORS.GRAY_50} transparent;
 `;
 
 export const SubtitleInfo = styled.div`
@@ -32,14 +38,14 @@ export const SubtitleInfo = styled.div`
 
   h3 {
     color: ${({ theme }) => theme.COLORS.GRAY_100};
-   font-size: 1.2rem ;
+    font-size: 1.2rem;
   }
 `;
 
 export const Divisor = styled.div`
-width: 5px;
-height: 5px;
-border-radius: 100%;
+  width: 5px;
+  height: 5px;
+  border-radius: 100%;
 
-background-color: ${({ theme }) => theme.COLORS.GRAY_100};
-`
+  background-color: ${({ theme }) => theme.COLORS.GRAY_100};
+`;
