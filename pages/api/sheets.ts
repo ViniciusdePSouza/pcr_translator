@@ -19,6 +19,9 @@ export default async function handlerGoogleSheet(
     return res.status(400).json({ message: "Missing required fields" });
   }
 
+  console.log(process.env.GOOGLE_CLIENT_EMAIL)
+  console.log(process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"))
+
   try {
     const auth = new google.auth.GoogleAuth({
       credentials: {
