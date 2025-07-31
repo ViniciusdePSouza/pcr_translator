@@ -391,7 +391,7 @@ export default function Activities() {
             ) : (
               <Dashboard
                 recordsAmount={recordsAmount}
-                recordsWithActivities={recordsWithActivities}
+                recordsWithActivities={recordsWithActivities - 1}
                 activities={activities}
                 startOver={() => setShowDashboard(false)}
                 spreadsheetLink={spreadSheetLink}
