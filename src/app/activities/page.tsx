@@ -64,7 +64,9 @@ export default function Activities() {
   const [showButtons, setShowButtons] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
   const [spreadSheetLink, setSpreadSheetLink] = useState("");
-  const [activities, setActivities] = useState<ActivitiesAccumulatorProps[]>([]);
+  const [activities, setActivities] = useState<ActivitiesAccumulatorProps[]>(
+    []
+  );
   const [recordsAmount, setRecordsAmount] = useState(0);
   const [recordsWithActivities, setRecordsWithActivities] = useState(0);
 
@@ -121,7 +123,7 @@ export default function Activities() {
     setIsLoading(true);
     try {
       let activitiesArray: ActivitiesProps[] = [];
-      let recordsWithActivitiesCounter = 0
+      let recordsWithActivitiesCounter = 0;
       const response = await fetchPcrRecords(
         data.targetListCode,
         [
@@ -165,7 +167,7 @@ export default function Activities() {
           );
 
         for (let i = 1; i <= numberOfLoops; i++) {
-          recordsWithActivitiesCounter++
+          recordsWithActivitiesCounter++;
           defineWarmingModalProps(
             `Retrieving activity data for candidate:\n${record.Candidate.FirstName} ${record.Candidate.LastName}`,
             "",
@@ -210,13 +212,6 @@ export default function Activities() {
         }, {})
       );
 
-      const googleSheetRows = [
-        result.reduce((acc, item) => {
-          acc[item.ActivityType] = item.count;
-          return acc;
-        }, {} as Record<string, number>),
-      ];
-
       defineWarmingModalProps(
         `Now we are creating your spreadsheet...`,
         "",
@@ -234,7 +229,7 @@ export default function Activities() {
       const folderId = match?.[1];
 
       const body = {
-        records: googleSheetRows,
+        records: result,
         folderId,
         spreadsheetName: data.sheetName,
       };
@@ -391,7 +386,6 @@ export default function Activities() {
       <Content>
         <Modal
           content={
-            
             !showDashboard ? (
               <FormComponent />
             ) : (
